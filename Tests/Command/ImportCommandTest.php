@@ -4,17 +4,43 @@ namespace Bordeux\Bundle\GeoNameBundle\Tests\Command;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 
-class ImportCommandTest extends WebTestCase
+/**
+ * Class ImportCommandTest
+ * @author Chris Bednarczyk <chris@tourradar.com>
+ * @package Bordeux\Bundle\GeoNameBundle\Tests\Command
+ */
+class ImportCommandTest extends CommandTestCase
 {
 
+
+    /**
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
     public function testExecute()
     {
         self::bootKernel();
 
+        $client = self::createClient();
+        $stream = $this->runCommand($client, "bordeux:geoname:import --archive http://download.geonames.org/export/dump/PL.zip'");
+
+        $output = '';
+        foreach ($stream as $line){
+            $output .= $line.PHP_EOL;
+            echo $line;
+        }
+
+        $this->assertContains('Imported successfully', $output);
+
+        $this->testContent();
+
+    }
+
+    /**
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
+    public function testContent(){
         $geoNameRepo = self::$kernel->getContainer()
             ->get("doctrine")
             ->getRepository("BordeuxGeoNameBundle:GeoName");
@@ -33,8 +59,6 @@ class ImportCommandTest extends WebTestCase
 
         $this->assertInstanceOf(Timezone::class, $timezone);
         $this->assertEquals($timezone->getTimezone(), 'Europe/Warsaw');
-
-
 
     }
 }
