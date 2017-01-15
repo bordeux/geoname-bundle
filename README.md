@@ -1,7 +1,6 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle)
-
+[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)
 # Introduction
 
 Provides access to the data exported by [geonames.org][1] into [symfony 2][sf2]
