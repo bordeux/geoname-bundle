@@ -32,6 +32,7 @@ before_install:
   - mysql -e 'CREATE DATABASE geo_test;'
   - composer self-update
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony:${SYMFONY_VERSION}; fi;
+  - ./Tests/Resources/app/console doctrine:schema:update --force
 
 install:
   - if [ "$deps" = "no" ]; then composer update; fi;
