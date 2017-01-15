@@ -1,9 +1,10 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)
+[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
+
 # Introduction
 
-Provides access to the data exported by [geonames.org][1] into [symfony 2][sf2]
+Provides access to the data exported by [GeoNames.org][1] into  [Symfony 2][2] and [Symfony 3][2]
 applications.
 
 
@@ -78,14 +79,6 @@ Loads a list of all data from [geonames.org][1]
 
 ```sh
     php bin/console bordeux:geoname:import  --env=prod
-```
-
-### Import timezones
-
-Loads a list of timezones mapped to countries
-
-```sh
-app/console geonames:load:timezones
 ```
 
 ### Options
