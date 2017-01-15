@@ -37,14 +37,10 @@ class ImportCommandTest extends WebTestCase
 
         $output = new StreamOutput(fopen('php://stdout', 'w', false));;
 
-        $command->run($input, $output);
+        $result = $command->run($input, $output);
 
 
-        rewind($output->getStream());
-        $display = stream_get_contents($output->getStream());
-        $display = str_replace(PHP_EOL, "\n", $display);
-
-        $this->assertContains('Imported successfully', $display);
+        $this->assertEquals((int) $result, 0);
 
 
         $geoNameRepo = self::$kernel->getContainer()
