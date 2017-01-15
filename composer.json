@@ -21,8 +21,10 @@
 		"guzzlehttp/promises": ">=1.0"
     },
     "require-dev": {
+        "satooshi/php-coveralls": "^1.0",
         "phpunit/phpunit": "~4",
-        "doctrine/orm": "^2.5"
+        "doctrine/orm": "^2.5",
+        "symfony/yaml": "~2.7|~3.0"
     },
     "autoload": {
         "psr-4": { "Bordeux\\Bundle\\GeoNameBundle\\": "" }
