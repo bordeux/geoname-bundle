@@ -1,5 +1,6 @@
 Geonames Bundle
 ===============
+[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle)
 
 # Introduction
 

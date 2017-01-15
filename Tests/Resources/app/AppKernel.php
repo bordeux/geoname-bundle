@@ -24,10 +24,6 @@ class AppKernel extends Kernel
             new Bordeux\Bundle\GeoNameBundle\BordeuxGeoNameBundle(),
         ];
 
-        if (in_array($this->getEnvironment(), ['dev', 'test'], true)) {
-            $bundles[] = new Symfony\Bundle\DebugBundle\DebugBundle();
-        }
-
         return $bundles;
     }
 
