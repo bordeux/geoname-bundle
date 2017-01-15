@@ -51,7 +51,7 @@ class ImportCommand extends ContainerAwareCommand
 
         $downloadDir = realpath($downloadDir);
 
-        /*
+
                // archive
                $archive = $input->getOption('archive');
                $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
@@ -97,25 +97,14 @@ $output->writeln('');
                    $output
                )->wait();
 $output->writeln('');
-               */
+
 
 
         //importing
 
-        //timezones
-        $timezones = $input->getOption('timezones');
-        $timezonesLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($timezones);
-
-
-        $admin1 = $input->getOption('admin1-codes');
-        $admin1Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin1);
-
-        $admin2 = $input->getOption('admin2-codes');
-        $admin2Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin2);
-
         $output->writeln('');
 
-        /*$this->importWithProgressBar(
+        $this->importWithProgressBar(
             $this->getContainer()->get("bordeux.geoname.import.timezone"),
             $timezonesLocal,
             "Importing timezones",
@@ -140,7 +129,7 @@ $output->writeln('');
             $admin2Local,
             "Importing administrative 2",
             $output
-        )->wait();*/
+        )->wait();
 
 
         $output->writeln('');
@@ -156,6 +145,9 @@ $output->writeln('');
             $output,
             1000
         )->wait();
+
+
+        $output->writeln("Imported successfully! Thank you :) ");
 
     }
 
