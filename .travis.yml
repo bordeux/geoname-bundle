@@ -38,6 +38,6 @@ install:
   - if [ "$deps" = "low" ]; then composer --prefer-lowest --prefer-stable update; fi;
   - ./Tests/Resources/app/console doctrine:schema:update --force
 
-  
+
 script:
   - ./vendor/bin/phpunit -v --coverage-clover ./build/logs/clover.xml
