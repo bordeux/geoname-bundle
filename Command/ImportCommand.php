@@ -20,7 +20,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ImportCommand extends ContainerAwareCommand
 {
 
-
+    /**
+     *
+     */
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
 
     /**
@@ -40,6 +42,11 @@ class ImportCommand extends ContainerAwareCommand
             ->setDescription('Import GeoNames');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
@@ -51,53 +58,51 @@ class ImportCommand extends ContainerAwareCommand
 
         $downloadDir = realpath($downloadDir);
 
+        // archive
+        $archive = $input->getOption('archive');
+        $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
 
-               // archive
-               $archive = $input->getOption('archive');
-               $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
+        $this->downloadWithProgressBar(
+            $archive,
+            $archiveLocal,
+            $output
+        )->wait();
+        $output->writeln('');
 
-               $this->downloadWithProgressBar(
-                   $archive,
-                   $archiveLocal,
-                   $output
-               )->wait();
-$output->writeln('');
+        //timezones
+        $timezones = $input->getOption('timezones');
+        $timezonesLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($timezones);
 
-               //timezones
-               $timezones = $input->getOption('timezones');
-               $timezonesLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($timezones);
+        $this->downloadWithProgressBar(
+            $timezones,
+            $timezonesLocal,
+            $output
+        )->wait();
+        $output->writeln('');
 
-               $this->downloadWithProgressBar(
-                   $timezones,
-                   $timezonesLocal,
-                   $output
-               )->wait();
-$output->writeln('');
+        // admin1
+        $admin1 = $input->getOption('admin1-codes');
+        $admin1Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin1);
 
-               // admin1
-               $admin1 = $input->getOption('admin1-codes');
-               $admin1Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin1);
+        $this->downloadWithProgressBar(
+            $admin1,
+            $admin1Local,
+            $output
+        )->wait();
+        $output->writeln('');
 
-               $this->downloadWithProgressBar(
-                   $admin1,
-                   $admin1Local,
-                   $output
-               )->wait();
-$output->writeln('');
+        //admin2
 
-               //admin2
-
-               $admin2 = $input->getOption('admin2-codes');
-               $admin2Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin2);
+        $admin2 = $input->getOption('admin2-codes');
+        $admin2Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin2);
 
 
-               $this->downloadWithProgressBar(
-                   $admin2,
-                   $admin2Local,
-                   $output
-               )->wait();
-$output->writeln('');
-
+        $this->downloadWithProgressBar(
+            $admin2,
+            $admin2Local,
+            $output
+        )->wait();
+        $output->writeln('');
 
 
         //importing
@@ -119,7 +124,6 @@ $output->writeln('');
             "Importing administrative 1",
             $output
         )->wait();
-
 
 
         $output->writeln('');
@@ -152,6 +156,15 @@ $output->writeln('');
 
     }
 
+    /**
+     * @param ImportInterface $importer
+     * @param string $file
+     * @param string $message
+     * @param OutputInterface $output
+     * @param int $steps
+     * @return \GuzzleHttp\Promise\Promise|\GuzzleHttp\Promise\PromiseInterface
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
     public function importWithProgressBar(ImportInterface $importer, $file, $message, OutputInterface $output, $steps = 100)
     {
         $progress = new ProgressBar($output, $steps);
@@ -171,6 +184,13 @@ $output->writeln('');
     }
 
 
+    /**
+     * @param string $url
+     * @param string $saveAs
+     * @param OutputInterface $output
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
     public function downloadWithProgressBar($url, $saveAs, OutputInterface $output)
     {
         $progress = new ProgressBar($output, 100);

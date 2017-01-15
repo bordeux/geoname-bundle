@@ -2,63 +2,44 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Tests\Command;
 
-use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Bordeux\Bundle\GeoNameBundle\Command\ImportCommand;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\StreamOutput;
 
-
-/**
- * Class ImportCommandTest
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Bordeux\Bundle\GeoNameBundle\Tests\Command
- */
-class ImportCommandTest extends CommandTestCase
+class ImportCommandTest extends WebTestCase
 {
-
-
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @inheritDoc
      */
-    public function testExecute()
+    protected function setUp()
     {
-        self::bootKernel();
-
-        $client = self::createClient();
-        $stream = $this->runCommand($client, "bordeux:geoname:import --archive http://download.geonames.org/export/dump/PL.zip'");
-
-        $output = '';
-        foreach ($stream as $line){
-            $output .= $line.PHP_EOL;
-            echo $line;
-        }
-
-        $this->assertContains('Imported successfully', $output);
-
-        $this->testContent();
-
+        static::$kernel = static::createKernel();
+        static::$kernel->boot();
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function testContent(){
-        $geoNameRepo = self::$kernel->getContainer()
-            ->get("doctrine")
-            ->getRepository("BordeuxGeoNameBundle:GeoName");
+    public function testDownload()
+    {
+        $application = new Application(static::$kernel);
+        $application->add(new ImportCommand());
 
-        /** @var GeoName $chorzow */
-        $chorzow = $geoNameRepo->find(3101619);
-
-        $this->assertInstanceOf(GeoName::class, $chorzow);
-
-        $this->assertEquals($chorzow->getName(), 'Chorzów');
-        $this->assertEquals($chorzow->getAsciiName(), 'Chorzow');
-        $this->assertEquals($chorzow->getCountryCode(), 'PL');
-
-        $timezone = $chorzow->getTimezone();
+        $command = $application->find('bordeux:geoname:import');
+        $command->setApplication($application);
 
 
-        $this->assertInstanceOf(Timezone::class, $timezone);
-        $this->assertEquals($timezone->getTimezone(), 'Europe/Warsaw');
+        $input = new ArrayInput([
+            'command' => $command->getName(),
+            '--archive' => 'http://download.geonames.org/export/dump/PL.zip'
+        ]);
 
+        $output = new StreamOutput(fopen('php://stdout', 'w', false));;
+
+        $command->run($input, $output);
+
+
+        
+
+        //$this->assertContains('Imported successfully', $commandTester->getDisplay());
     }
 }
