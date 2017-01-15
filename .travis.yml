@@ -5,6 +5,8 @@ sudo: false
 cache:
   directories:
     - $HOME/.composer/cache
+services:
+  - mysql
 
 php:
   - 5.5
@@ -27,6 +29,7 @@ env:
     - deps=no
 
 before_install:
+  - mysql -e 'CREATE DATABASE geo_test;'
   - composer self-update
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony:${SYMFONY_VERSION}; fi;
 
