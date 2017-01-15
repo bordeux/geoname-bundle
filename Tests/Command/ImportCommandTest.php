@@ -3,6 +3,8 @@
 namespace Bordeux\Bundle\GeoNameBundle\Tests\Command;
 
 use Bordeux\Bundle\GeoNameBundle\Command\ImportCommand;
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
+use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -30,7 +32,7 @@ class ImportCommandTest extends WebTestCase
 
         $input = new ArrayInput([
             'command' => $command->getName(),
-            '--archive' => 'http://download.geonames.org/export/dump/PL.zip'
+            '--archive' => 'http://download.geonames.org/export/dump/AX.zip'
         ]);
 
         $output = new StreamOutput(fopen('php://stdout', 'w', false));;
@@ -38,8 +40,33 @@ class ImportCommandTest extends WebTestCase
         $command->run($input, $output);
 
 
-        
+        rewind($output->getStream());
+        $display = stream_get_contents($output->getStream());
+        $display = str_replace(PHP_EOL, "\n", $display);
 
-        //$this->assertContains('Imported successfully', $commandTester->getDisplay());
+        $this->assertContains('Imported successfully', $display);
+
+
+        $geoNameRepo = self::$kernel->getContainer()
+            ->get("doctrine")
+            ->getRepository("BordeuxGeoNameBundle:GeoName");
+
+        /** @var GeoName $ytterskaer */
+        $ytterskaer = $geoNameRepo->find(630694);
+
+        $this->assertInstanceOf(GeoName::class, $ytterskaer);
+
+        $this->assertEquals($ytterskaer->getName(), 'Ytterskär');
+        $this->assertEquals($ytterskaer->getAsciiName(), 'Ytterskaer');
+        $this->assertEquals($ytterskaer->getCountryCode(), 'AX');
+
+        $timezone = $ytterskaer->getTimezone();
+
+
+        $this->assertInstanceOf(Timezone::class, $timezone);
+        $this->assertEquals($timezone->getTimezone(), 'Europe/Mariehamn');
     }
+
+
+
 }
