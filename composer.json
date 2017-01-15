@@ -1,0 +1,31 @@
+{
+    "name": "bordeux/geoname-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony GeoNameBundle",
+    "keywords": ["geoname", "geonameid"],
+    "homepage": "https://github.com/bordeux/geoname-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Krzysztof Bednarczyk",
+            "email": "krzysztof@bednarczyk.me"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "symfony/framework-bundle": "~2.7|~3.0",
+        "symfony/console": "~2.7|~3.0",
+        "symfony/dependency-injection": "~2.7|~3.0",
+        "doctrine/doctrine-bundle": ">=1.6",
+        "guzzlehttp/guzzle": "~6.0",
+		"guzzlehttp/promises": ">=1.0"
+    },
+    "autoload": {
+        "psr-4": { "Bordeux\\Bundle\\GeoNameBundle\\": "" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}

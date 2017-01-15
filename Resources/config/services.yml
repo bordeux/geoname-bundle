@@ -1,0 +1,12 @@
+services:
+    bordeux.geoname.import.timezone:
+        class: Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport
+        arguments: ["@doctrine.orm.default_entity_manager"]
+
+    bordeux.geoname.import.administrative:
+        class: Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport
+        arguments: ["@doctrine.orm.default_entity_manager"]
+
+    bordeux.geoname.import.geoname:
+        class: Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport
+        arguments: ["@doctrine.orm.default_entity_manager"]
