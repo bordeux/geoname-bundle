@@ -37,6 +37,7 @@ install:
   - if [ "$deps" = "no" ]; then composer update; fi;
   - if [ "$deps" = "low" ]; then composer --prefer-lowest --prefer-stable update; fi;
   - ./Tests/Resources/app/console doctrine:schema:update --force
+  - ./Tests/Resources/app/console bordeux:geoname:import --archive http://download.geonames.org/export/dump/PL.zip
 
 
 script:
