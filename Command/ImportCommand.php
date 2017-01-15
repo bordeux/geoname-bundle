@@ -147,6 +147,7 @@ $output->writeln('');
         )->wait();
 
 
+        $output->writeln("");
         $output->writeln("Imported successfully! Thank you :) ");
 
     }
