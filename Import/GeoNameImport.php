@@ -87,7 +87,12 @@ class GeoNameImport implements ImportInterface
 
         $buffer = [];
         while (!feof($handler)) {
-            $row = array_map('trim', fgetcsv($handler, null, "\t"));
+			$csv = fgetcsv($handler, null, "\t");
+			if(!is_array($csv)){
+				continue;
+			}
+			
+            $row = array_map('trim', $csv);
             list(
                 $geoNameId,
                 $name,
