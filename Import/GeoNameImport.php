@@ -91,6 +91,9 @@ class GeoNameImport implements ImportInterface
 			if(!is_array($csv)){
 				continue;
 			}
+			if(!isset($csv[0]) || !is_numeric($csv[0])){
+				continue;
+			}
 			
             $row = array_map('trim', $csv);
             list(
