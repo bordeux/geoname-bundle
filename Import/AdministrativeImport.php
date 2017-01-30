@@ -91,7 +91,7 @@ class AdministrativeImport implements ImportInterface
 
             is_callable($progress) && $progress(($pos++) / $max);
 
-            if($pos % 1000){
+            if($pos % 10000){
                 $this->em->flush();
                 $this->em->clear();
             }

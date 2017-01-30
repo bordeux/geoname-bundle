@@ -62,6 +62,7 @@ class GeoNameImport implements ImportInterface
     {
 
         $avrOneLineSize = 29.4;
+        $batchSize = 50000;
 
         $connection = $this->em->getConnection();
 
@@ -94,7 +95,7 @@ class GeoNameImport implements ImportInterface
 			if(!isset($csv[0]) || !is_numeric($csv[0])){
 				continue;
 			}
-			
+
             $row = array_map('trim', $csv);
             list(
                 $geoNameId,
@@ -146,12 +147,14 @@ class GeoNameImport implements ImportInterface
             $buffer[] = preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $insertSQL, 1);
 
 
-            if ($pos % 5000) {
+            if ($pos % $batchSize) {
+                $connection->exec('SET FOREIGN_KEY_CHECKS=0;');
                 $connection->exec(implode("; ", $buffer));
+                $connection->exec('SET FOREIGN_KEY_CHECKS=1;');
                 $buffer = [];
+                is_callable($progress) && $progress(($pos++) / $max);
             }
 
-            is_callable($progress) && $progress(($pos++) / $max);
         }
 
         !empty($buffer) && $connection->exec(implode("; ", $buffer));
