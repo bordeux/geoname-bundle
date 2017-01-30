@@ -62,13 +62,13 @@ class GeoNameImport implements ImportInterface
     {
 
         $avrOneLineSize = 29.4;
-        $batchSize = 10000;
+        $batchSize = 50000;
 
         $connection = $this->em->getConnection();
 
         $fileInside = basename($filePath, ".zip") . '.txt';
         $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int) filesize($filePath)/$avrOneLineSize;
+        $max = (int)filesize($filePath) / $avrOneLineSize;
 
         $fieldsNames = $this->getFieldNames();
 
@@ -84,17 +84,20 @@ class GeoNameImport implements ImportInterface
             ->getClassMetadata("BordeuxGeoNameBundle:Administrative")
             ->getTableName();
 
+        $connection->exec('SET FOREIGN_KEY_CHECKS=0;');
+        $connection->exec("DELETE FROM {$geoNameTableName} WHERE 1=1");
+
         $pos = 0;
 
         $buffer = [];
         while (!feof($handler)) {
-			$csv = fgetcsv($handler, null, "\t");
-			if(!is_array($csv)){
-				continue;
-			}
-			if(!isset($csv[0]) || !is_numeric($csv[0])){
-				continue;
-			}
+            $csv = fgetcsv($handler, null, "\t");
+            if (!is_array($csv)) {
+                continue;
+            }
+            if (!isset($csv[0]) || !is_numeric($csv[0])) {
+                continue;
+            }
 
             $row = array_map('trim', $csv);
             list(
@@ -136,29 +139,28 @@ class GeoNameImport implements ImportInterface
                     $fieldsNames['elevation'] => $this->e($elevation),
                     $fieldsNames['dem'] => $this->e($dem),
                     $fieldsNames['modificationDate'] => $this->e($modificationDate),
-                    $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone)." LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin1Code)." LIMIT 1)"  : 'NULL',
-                    $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin2Code)." LIMIT 1)"  : 'NULL',
-                    $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin3Code)." LIMIT 1)"  : 'NULL',
-                    $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin4Code)." LIMIT 1)"  : 'NULL',
+                    $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin1Code) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin2Code) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin3Code) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin4Code) . " LIMIT 1)" : 'NULL',
                 ])->getSQL();
 
 
-            $buffer[] = preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $insertSQL, 1);
+            $buffer[] = $insertSQL;
 
+            $pos++;
 
             if ($pos % $batchSize) {
-                $connection->exec('SET FOREIGN_KEY_CHECKS=0;');
                 $connection->exec(implode("; ", $buffer));
-                $connection->exec('SET FOREIGN_KEY_CHECKS=1;');
                 $buffer = [];
-                is_callable($progress) && $progress(($pos++) / $max);
+                is_callable($progress) && $progress(($pos) / $max);
             }
 
         }
 
         !empty($buffer) && $connection->exec(implode("; ", $buffer));
-
+        $connection->exec('SET FOREIGN_KEY_CHECKS=1;');
 
         return true;
     }

@@ -65,7 +65,7 @@ class ImportCommand extends ContainerAwareCommand
         $archive = $input->getOption('archive');
         $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
 
-        $this->downloadWithProgressBar(
+        /*$this->downloadWithProgressBar(
             $archive,
             $archiveLocal,
             $output
@@ -140,7 +140,7 @@ class ImportCommand extends ContainerAwareCommand
 
 
         $output->writeln('');
-
+*/
 
         $archive = $input->getOption('archive');
         $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
