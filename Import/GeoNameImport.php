@@ -62,7 +62,7 @@ class GeoNameImport implements ImportInterface
     {
 
         $avrOneLineSize = 29.4;
-        $batchSize = 50000;
+        $batchSize = 20000;
 
         $connection = $this->em->getConnection();
 
