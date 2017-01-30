@@ -50,7 +50,7 @@ class ImportCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        ini_set('memory_limit','1024M');
+        ini_set('memory_limit', -1);
 
 
         $downloadDir = $input->getOption('download-dir') ?: $this->getContainer()->getParameter("kernel.cache_dir") . DIRECTORY_SEPARATOR . 'bordeux/geoname';
