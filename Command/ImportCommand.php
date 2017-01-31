@@ -33,12 +33,55 @@ class ImportCommand extends ContainerAwareCommand
 
         $this
             ->setName('bordeux:geoname:import')
-            ->addOption('archive', 'a', InputOption::VALUE_OPTIONAL, "Archive to GeoNames", 'http://download.geonames.org/export/dump/allCountries.zip')
-            ->addOption('timezones', 't', InputOption::VALUE_OPTIONAL, "Timezones file", 'http://download.geonames.org/export/dump/timeZones.txt')
-            ->addOption('admin1-codes', 'a1', InputOption::VALUE_OPTIONAL, "Admin 1 Codes file", 'http://download.geonames.org/export/dump/admin1CodesASCII.txt')
-            ->addOption('admin2-codes', 'a2', InputOption::VALUE_OPTIONAL, "Admin 2 Codes file", 'http://download.geonames.org/export/dump/admin2Codes.txt')
-            ->addOption('languages-codes', 'lc', InputOption::VALUE_OPTIONAL, "Admin 2 Codes file", 'http://download.geonames.org/export/dump/iso-languagecodes.txt')
-            ->addOption('download-dir', 'o', InputOption::VALUE_OPTIONAL, "Download dir", null)
+            ->addOption(
+                'archive',
+                'a',
+                InputOption::VALUE_OPTIONAL,
+                "Archive to GeoNames",
+                'http://download.geonames.org/export/dump/allCountries.zip'
+            )
+            ->addOption(
+                'timezones',
+                't',
+                InputOption::VALUE_OPTIONAL,
+                "Timezones file",
+                'http://download.geonames.org/export/dump/timeZones.txt'
+            )
+            ->addOption(
+                'admin1-codes',
+                'a1',
+                InputOption::VALUE_OPTIONAL,
+                "Admin 1 Codes file",
+                'http://download.geonames.org/export/dump/admin1CodesASCII.txt'
+            )
+            ->addOption(
+                'admin2-codes',
+                'a2',
+                InputOption::VALUE_OPTIONAL,
+                "Admin 2 Codes file",
+                'http://download.geonames.org/export/dump/admin2Codes.txt'
+            )
+            ->addOption(
+                'languages-codes',
+                'lc',
+                InputOption::VALUE_OPTIONAL,
+                "Admin 2 Codes file",
+                'http://download.geonames.org/export/dump/iso-languagecodes.txt'
+            )
+            ->addOption(
+                'country-info',
+                'ci',
+                InputOption::VALUE_OPTIONAL,
+                "Country info file",
+                'http://download.geonames.org/export/dump/countryInfo.txt'
+            )
+            ->addOption(
+                'download-dir',
+                'o',
+                InputOption::VALUE_OPTIONAL,
+                "Download dir",
+                null
+            )
             ->setDescription('Import GeoNames');
     }
 
@@ -49,9 +92,6 @@ class ImportCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
-        ini_set('memory_limit', -1);
-
 
         $downloadDir = $input->getOption('download-dir') ?: $this->getContainer()->getParameter("kernel.cache_dir") . DIRECTORY_SEPARATOR . 'bordeux/geoname';
 
@@ -65,7 +105,7 @@ class ImportCommand extends ContainerAwareCommand
         $archive = $input->getOption('archive');
         $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
 
-        /*$this->downloadWithProgressBar(
+        $this->downloadWithProgressBar(
             $archive,
             $archiveLocal,
             $output
@@ -108,6 +148,18 @@ class ImportCommand extends ContainerAwareCommand
         $output->writeln('');
 
 
+        // country-info
+        $countryInfo = $input->getOption('country-info');
+        $countryInfoLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($countryInfo);
+
+        $this->downloadWithProgressBar(
+            $countryInfo,
+            $countryInfoLocal,
+            $output
+        )->wait();
+        $output->writeln('');
+
+
         //importing
 
         $output->writeln('');
@@ -140,10 +192,7 @@ class ImportCommand extends ContainerAwareCommand
 
 
         $output->writeln('');
-*/
 
-        $archive = $input->getOption('archive');
-        $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
 
         $this->importWithProgressBar(
             $this->getContainer()->get("bordeux.geoname.import.geoname"),
@@ -155,6 +204,19 @@ class ImportCommand extends ContainerAwareCommand
 
 
         $output->writeln("");
+
+
+        //countries import
+        $this->importWithProgressBar(
+            $this->getContainer()->get("bordeux.geoname.import.country"),
+            $countryInfoLocal,
+            "Importing Countries",
+            $output
+        )->wait();
+
+        $output->writeln("");
+
+
         $output->writeln("Imported successfully! Thank you :) ");
 
     }

@@ -62,7 +62,7 @@ class GeoNameImport implements ImportInterface
     {
 
         $avrOneLineSize = 29.4;
-        $batchSize = 50000;
+        $batchSize = 10000;
 
         $connection = $this->em->getConnection();
 
@@ -84,12 +84,16 @@ class GeoNameImport implements ImportInterface
             ->getClassMetadata("BordeuxGeoNameBundle:Administrative")
             ->getTableName();
 
-        $connection->exec('SET FOREIGN_KEY_CHECKS=0;');
-        $connection->exec("DELETE FROM {$geoNameTableName} WHERE 1=1");
+
+        $connection->exec("START TRANSACTION");
 
         $pos = 0;
 
         $buffer = [];
+
+        $queryBuilder = $connection->createQueryBuilder()
+            ->insert($geoNameTableName);
+
         while (!feof($handler)) {
             $csv = fgetcsv($handler, null, "\t");
             if (!is_array($csv)) {
@@ -101,31 +105,34 @@ class GeoNameImport implements ImportInterface
 
             $row = array_map('trim', $csv);
             list(
-                $geoNameId,
-                $name,
-                $asciiName,
-                $alternateNames,
-                $latitude,
-                $longitude,
-                $featureClass,
-                $featureCode,
-                $countryCode,
-                $cc2,
-                $admin1Code,
-                $admin2Code,
-                $admin3Code,
-                $admin4Code,
-                $population,
-                $elevation,
-                $dem,
-                $timezone,
-                $modificationDate
+                    $geoNameId,
+                    $name,
+                    $asciiName,
+                    $alternateNames,
+                    $latitude,
+                    $longitude,
+                    $featureClass,
+                    $featureCode,
+                    $countryCode,
+                    $cc2,
+                    $admin1Code,
+                    $admin2Code,
+                    $admin3Code,
+                    $admin4Code,
+                    $population,
+                    $elevation,
+                    $dem,
+                    $timezone,
+                    $modificationDate
                 ) = $row;
 
 
-            $insertSQL = $connection->createQueryBuilder()
-                ->insert($geoNameTableName)
-                ->values([
+            if(!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)){
+                continue;
+            }
+
+
+            $insertSQL = $queryBuilder->values([
                     $fieldsNames['id'] => (int)$geoNameId,
                     $fieldsNames['name'] => $this->e($name),
                     $fieldsNames['asciiName'] => $this->e($asciiName),
@@ -140,27 +147,40 @@ class GeoNameImport implements ImportInterface
                     $fieldsNames['dem'] => $this->e($dem),
                     $fieldsNames['modificationDate'] => $this->e($modificationDate),
                     $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin1Code) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin2Code) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin3Code) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e($admin4Code) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
                 ])->getSQL();
 
 
-            $buffer[] = $insertSQL;
+            $buffer[] = preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $insertSQL, 1);
 
             $pos++;
 
             if ($pos % $batchSize) {
-                $connection->exec(implode("; ", $buffer));
+                $this->save($buffer);
                 $buffer = [];
                 is_callable($progress) && $progress(($pos) / $max);
             }
 
         }
 
-        !empty($buffer) && $connection->exec(implode("; ", $buffer));
-        $connection->exec('SET FOREIGN_KEY_CHECKS=1;');
+        !empty($buffer) &&  $this->save($buffer);;
+        $connection->exec('COMMIT');
+
+        return true;
+    }
+
+
+    /**
+     * @param $queries
+     * @return bool
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
+    public function save($queries){
+        $queries = implode("; \n", $queries);
+        $this->em->getConnection()->exec($queries);
 
         return true;
     }

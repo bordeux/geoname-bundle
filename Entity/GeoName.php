@@ -7,7 +7,9 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * GeoName
  *
- * @ORM\Table(name="geo__name")
+ * @ORM\Table(name="geo__name" ,indexes={
+ *     @ORM\Index(name="search_idx", columns={"name", "country_code"})
+ * })
  * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\GeoNameRepository")
  */
 class GeoName
@@ -71,6 +73,15 @@ class GeoName
      * @ORM\Column(name="country_code", type="string", length=2, nullable=true)
      */
     protected $countryCode;
+
+
+    /**
+     * @var Country
+     *
+     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Country")
+     * @ORM\JoinColumn(name="country_id", referencedColumnName="id", nullable=true)
+     */
+    protected $country;
 
     /**
      * @var float
@@ -497,6 +508,17 @@ class GeoName
         $this->modificationDate = $modificationDate;
         return $this;
     }
+
+    /**
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return Country
+     */
+    public function getCountry()
+    {
+        return $this->country;
+    }
+
+
 
 
 }

@@ -10,3 +10,8 @@ services:
     bordeux.geoname.import.geoname:
         class: Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport
         arguments: ["@doctrine.orm.default_entity_manager"]
+
+
+    bordeux.geoname.import.country:
+        class: Bordeux\Bundle\GeoNameBundle\Import\CountryImport
+        arguments: ["@doctrine.orm.default_entity_manager"]
