@@ -117,7 +117,7 @@ class Country
     /**
      * @var string
      *
-     * @ORM\Column(name="postal_format", type="string",length=50, nullable=true)
+     * @ORM\Column(name="postal_format", type="text", nullable=true)
      */
     protected $postalFormat;
 
@@ -125,7 +125,7 @@ class Country
     /**
      * @var string
      *
-     * @ORM\Column(name="postal_regex", type="string",length=50, nullable=true)
+     * @ORM\Column(name="postal_regex", type="text", nullable=true)
      */
     protected $postalRegex;
 
@@ -313,7 +313,7 @@ class Country
      */
     public function setArea($area)
     {
-        $this->area = $area;
+        $this->area =  (int) $area;
         return $this;
     }
 
@@ -333,7 +333,7 @@ class Country
      */
     public function setPopulation($population)
     {
-        $this->population = $population;
+        $this->population = (int)  $population;
         return $this;
     }
 

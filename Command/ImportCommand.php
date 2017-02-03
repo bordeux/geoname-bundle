@@ -82,6 +82,9 @@ class ImportCommand extends ContainerAwareCommand
                 "Download dir",
                 null
             )
+            ->addOption("skip-admin1", null, InputOption::VALUE_OPTIONAL, null, false)
+            ->addOption("skip-admin2", null, InputOption::VALUE_OPTIONAL, null, false)
+            ->addOption("skip-geoname", null, InputOption::VALUE_OPTIONAL, null, false)
             ->setDescription('Import GeoNames');
     }
 
@@ -101,16 +104,6 @@ class ImportCommand extends ContainerAwareCommand
 
         $downloadDir = realpath($downloadDir);
 
-        // archive
-        $archive = $input->getOption('archive');
-        $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
-
-        $this->downloadWithProgressBar(
-            $archive,
-            $archiveLocal,
-            $output
-        )->wait();
-        $output->writeln('');
 
         //timezones
         $timezones = $input->getOption('timezones');
@@ -119,30 +112,6 @@ class ImportCommand extends ContainerAwareCommand
         $this->downloadWithProgressBar(
             $timezones,
             $timezonesLocal,
-            $output
-        )->wait();
-        $output->writeln('');
-
-        // admin1
-        $admin1 = $input->getOption('admin1-codes');
-        $admin1Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin1);
-
-        $this->downloadWithProgressBar(
-            $admin1,
-            $admin1Local,
-            $output
-        )->wait();
-        $output->writeln('');
-
-        //admin2
-
-        $admin2 = $input->getOption('admin2-codes');
-        $admin2Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin2);
-
-
-        $this->downloadWithProgressBar(
-            $admin2,
-            $admin2Local,
             $output
         )->wait();
         $output->writeln('');
@@ -173,38 +142,76 @@ class ImportCommand extends ContainerAwareCommand
 
         $output->writeln('');
 
-        $this->importWithProgressBar(
-            $this->getContainer()->get("bordeux.geoname.import.administrative"),
-            $admin1Local,
-            "Importing administrative 1",
-            $output
-        )->wait();
+        if (!$input->getOption("skip-admin1")) {
+            // admin1
+            $admin1 = $input->getOption('admin1-codes');
+            $admin1Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin1);
+
+            $this->downloadWithProgressBar(
+                $admin1,
+                $admin1Local,
+                $output
+            )->wait();
+            $output->writeln('');
+
+            $this->importWithProgressBar(
+                $this->getContainer()->get("bordeux.geoname.import.administrative"),
+                $admin1Local,
+                "Importing administrative 1",
+                $output
+            )->wait();
+
+            $output->writeln('');
+        }
 
 
-        $output->writeln('');
-
-        $this->importWithProgressBar(
-            $this->getContainer()->get("bordeux.geoname.import.administrative"),
-            $admin2Local,
-            "Importing administrative 2",
-            $output
-        )->wait();
+        if (!$input->getOption("skip-admin2")) {
+            $admin2 = $input->getOption('admin2-codes');
+            $admin2Local = $downloadDir . DIRECTORY_SEPARATOR . basename($admin2);
 
 
-        $output->writeln('');
+            $this->downloadWithProgressBar(
+                $admin2,
+                $admin2Local,
+                $output
+            )->wait();
+            $output->writeln('');
+
+            $this->importWithProgressBar(
+                $this->getContainer()->get("bordeux.geoname.import.administrative"),
+                $admin2Local,
+                "Importing administrative 2",
+                $output
+            )->wait();
 
 
-        $this->importWithProgressBar(
-            $this->getContainer()->get("bordeux.geoname.import.geoname"),
-            $archiveLocal,
-            "Importing GeoNames",
-            $output,
-            1000
-        )->wait();
+            $output->writeln('');
+        }
 
 
-        $output->writeln("");
+        if (!$input->getOption("skip-geoname")) {
+            // archive
+            $archive = $input->getOption('archive');
+            $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
 
+            $this->downloadWithProgressBar(
+                $archive,
+                $archiveLocal,
+                $output
+            )->wait();
+            $output->writeln('');
+
+            $this->importWithProgressBar(
+                $this->getContainer()->get("bordeux.geoname.import.geoname"),
+                $archiveLocal,
+                "Importing GeoNames",
+                $output,
+                1000
+            )->wait();
+
+
+            $output->writeln("");
+        }
 
         //countries import
         $this->importWithProgressBar(
