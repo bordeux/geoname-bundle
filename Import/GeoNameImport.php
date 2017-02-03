@@ -5,6 +5,7 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
 use SplFileObject;
@@ -85,6 +86,8 @@ class GeoNameImport implements ImportInterface
             ->getTableName();
 
 
+        $dbType = $connection->getDatabasePlatform()->getName();
+
         $connection->exec("START TRANSACTION");
 
         $pos = 0;
@@ -132,8 +135,8 @@ class GeoNameImport implements ImportInterface
             }
 
 
-            $insertSQL = $queryBuilder->values([
-                    $fieldsNames['id'] => (int)$geoNameId,
+            $query = $queryBuilder->values([
+                    $fieldsNames['id'] => (int)$geoNameId, //must be as first!
                     $fieldsNames['name'] => $this->e($name),
                     $fieldsNames['asciiName'] => $this->e($asciiName),
                     $fieldsNames['latitude'] => $this->e($latitude),
@@ -151,10 +154,10 @@ class GeoNameImport implements ImportInterface
                     $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
                     $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
                     $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
-                ])->getSQL();
+                ]);
 
 
-            $buffer[] = preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $insertSQL, 1);
+            $buffer[] = $this->insertToReplace($query, $dbType);
 
             $pos++;
 
@@ -173,6 +176,36 @@ class GeoNameImport implements ImportInterface
     }
 
 
+    /**
+     * @param QueryBuilder $insertSQL
+     * @return mixed
+     * @author Chris Bednarczyk <chris@tourradar.com>
+     */
+    public function insertToReplace(QueryBuilder $insertSQL, $dbType){
+        if($dbType == "mysql"){
+            $sql = $insertSQL->getSQL();
+            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
+        }
+
+        if($dbType == "postgresql"){
+            $vals = $insertSQL->getQueryPart("values");
+            $sql = $insertSQL->getSQL();
+            reset($vals);
+            $index = key($vals);
+            array_shift($vals);
+
+            $parts = [];
+            foreach($vals as $column => $val){
+                $parts[] = "{$column} = {$val}";
+            }
+
+            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET ".implode(", ", $parts);
+
+            return $sql;
+        }
+
+        throw new \Exception("Unsupported database type");
+    }
     /**
      * @param $queries
      * @return bool
