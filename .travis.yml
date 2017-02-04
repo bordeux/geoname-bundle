@@ -9,7 +9,7 @@ services:
   - mysql
 
 addons:
-  postgresql: "9.6"
+  postgresql: "9.5"
   
 php:
   - 5.5
