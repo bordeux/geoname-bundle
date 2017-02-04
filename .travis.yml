@@ -29,15 +29,16 @@ env:
   global:
     - deps=no
     - DATABASE_NAME="geo_test"
+    - DATABASE_DRIVER="pdo_mysql"
   matrix:
     - DATABASE_DRIVER="pdo_pgsql"
     - DATABASE_DRIVER="pdo_mysql"
 
 before_install:
-  - if [ "$DATABASE_DRIVER" == "pdo_mysql" ]; then mysql -e "CREATE DATABASE $DATABASE_NAME ;"; fi;
+  - mysql -e "CREATE DATABASE $DATABASE_NAME ;"
+  - psql -c "CREATE DATABASE $DATABASE_NAME ;" -U postgres
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_PORT=5432; fi;
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_USER="postgres"; fi;
-  - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then psql -c "CREATE DATABASE $DATABASE_NAME ;" -U postgres; fi;
   - composer self-update
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony:${SYMFONY_VERSION}; fi;
 
