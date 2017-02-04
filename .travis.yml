@@ -8,9 +8,7 @@ cache:
 services:
   - mysql
   - postgresql
-  
-addons:
-  postgresql: "9.5" 
+
   
 php:
   - 5.5
@@ -36,7 +34,7 @@ env:
 
 before_install:
   - mysql -e "CREATE DATABASE $DATABASE_NAME ;"
-  - psql -c "CREATE DATABASE $DATABASE_NAME ;" -U postgres
+  - psql -c 'create database geo_test;' -U postgres
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_PORT=5432; fi;
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_USER="postgres"; fi;
   - composer self-update
