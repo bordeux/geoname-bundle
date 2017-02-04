@@ -5,11 +5,13 @@ sudo: false
 cache:
   directories:
     - $HOME/.composer/cache
-services:
-  - mysql
 
 addons:
-  postgresql: "9.5"
+  postgresql: "9.6"
+  
+services:
+  - mysql
+  - postgresql
   
 php:
   - 5.5
