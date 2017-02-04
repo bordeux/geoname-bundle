@@ -1,6 +1,6 @@
 language: php
 
-sudo: required
+sudo: true
 
 cache:
   directories:
@@ -18,7 +18,8 @@ php:
   - 5.6
   - 7.0
   - 7.1
-
+  - hhvm
+  
 matrix:
   include:
     - php: 5.6
@@ -31,12 +32,17 @@ env:
     - deps=no
     - DATABASE_NAME="geo_test"
     - DATABASE_DRIVER="pdo_mysql"
+    - PGUSER=postgres
+    - PGDATABASE=postgres
+    
   matrix:
     - DATABASE_DRIVER="pdo_pgsql"
     - DATABASE_DRIVER="pdo_mysql"
 
 before_install:
   - mysql -e "CREATE DATABASE $DATABASE_NAME ;"
+  - sudo service postgresql stop
+  - sudo service postgresql start 9.6
   - psql -c 'create database '"$DATABASE_NAME"';' -U postgres
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_PORT=5432; fi;
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_USER="postgres"; fi;
