@@ -26,17 +26,18 @@ matrix:
       env: SYMFONY_VERSION="3.0.*@dev"
 
 env:
-  - DATABASE_DRIVER="pdo_mysql"
-  - DATABASE_DRIVER="pdo_pgsql"
-  - DATABASE_NAME="geo_test"
-  - deps=no
-
+  global:
+    - deps=no
+    - DATABASE_NAME="geo_test"
+  matrix:
+    - DATABASE_NAME="geo_test"
+    - DATABASE_DRIVER="pdo_pgsql"
 
 before_install:
-  - if [ "$DATABASE_DRIVER" != "pdo_mysql" ]; then mysql -e "CREATE DATABASE $DATABASE_NAME ;" fi;
-  - if [ "$DATABASE_DRIVER" != "pdo_pgsql" ]; then export DATABASE_PORT= fi;
-  - if [ "$DATABASE_DRIVER" != "pdo_pgsql" ]; then export DATABASE_USER="postgres" fi;
-  - if [ "$DATABASE_DRIVER" != "pdo_pgsql" ]; then psql -c "create database $DATABASE_NAME ;" -U postgres fi;
+  - if [ "$DATABASE_DRIVER" == "pdo_mysql" ]; then mysql -e "CREATE DATABASE $DATABASE_NAME ;" fi;
+  - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_PORT=5432 fi;
+  - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_USER="postgres" fi;
+  - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then psql -c "create database $DATABASE_NAME ;" -U postgres fi;
   - composer self-update
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony:${SYMFONY_VERSION}; fi;
 
