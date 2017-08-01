@@ -163,7 +163,7 @@ class GeoName
     /**
      * @var Geoname[]
      *
-     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", mappedBy="parents")
+     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
      * @ORM\JoinTable(name="geo__name_hierarchy",
      *      joinColumns={@ORM\JoinColumn(name="geo_name_id", referencedColumnName="id")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="children_id", referencedColumnName="id")}
@@ -174,7 +174,7 @@ class GeoName
     /**
      * @var Geoname[]
      *
-     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="childrens")
+     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", mappedBy="childrens")
      */
     protected $parents;
 
