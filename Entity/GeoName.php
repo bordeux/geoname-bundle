@@ -159,6 +159,26 @@ class GeoName
      */
     protected $modificationDate;
 
+
+    /**
+     * @var Geoname[]
+     *
+     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", mappedBy="parents")
+     * @ORM\JoinTable(name="geo__name_hierarchy",
+     *      joinColumns={@ORM\JoinColumn(name="geo_name_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="children_id", referencedColumnName="id")}
+     * )
+     */
+    protected $childrens;
+
+    /**
+     * @var Geoname[]
+     *
+     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="childrens")
+     */
+    protected $parents;
+
+
     /**
      * Get id
      *

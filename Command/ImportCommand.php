@@ -55,6 +55,13 @@ class ImportCommand extends ContainerAwareCommand
                 'http://download.geonames.org/export/dump/admin1CodesASCII.txt'
             )
             ->addOption(
+                'hierarchy',
+                'hi',
+                InputOption::VALUE_OPTIONAL,
+                "Hierarchy ZIP file",
+                'http://download.geonames.org/export/dump/hierarchy.zip'
+            )
+            ->addOption(
                 'admin2-codes',
                 'a2',
                 InputOption::VALUE_OPTIONAL,
@@ -85,6 +92,7 @@ class ImportCommand extends ContainerAwareCommand
             ->addOption("skip-admin1", null, InputOption::VALUE_OPTIONAL, null, false)
             ->addOption("skip-admin2", null, InputOption::VALUE_OPTIONAL, null, false)
             ->addOption("skip-geoname", null, InputOption::VALUE_OPTIONAL, null, false)
+            ->addOption("skip-hierarchy", null, InputOption::VALUE_OPTIONAL, null, false)
             ->setDescription('Import GeoNames');
     }
 
@@ -220,6 +228,33 @@ class ImportCommand extends ContainerAwareCommand
             "Importing Countries",
             $output
         )->wait();
+
+
+
+        if (!$input->getOption("skip-hierarchy")) {
+            // archive
+            $archive = $input->getOption('hierarchy');
+            $archiveLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($archive);
+
+            $this->downloadWithProgressBar(
+                $archive,
+                $archiveLocal,
+                $output
+            )->wait();
+            $output->writeln('');
+
+            $this->importWithProgressBar(
+                $this->getContainer()->get("bordeux.geoname.import.hierarchy"),
+                $archiveLocal,
+                "Importing Hierarchy",
+                $output,
+                1000
+            )->wait();
+
+
+            $output->writeln("");
+        }
+
 
         $output->writeln("");
 
