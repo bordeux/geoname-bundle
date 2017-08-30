@@ -161,20 +161,16 @@ class GeoName
 
 
     /**
-     * @var Geoname[]
+     * @var Hierarchy[]
      *
-     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
-     * @ORM\JoinTable(name="geo__name_hierarchy",
-     *      joinColumns={@ORM\JoinColumn(name="geo_name_id", referencedColumnName="id")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="children_id", referencedColumnName="id")}
-     * )
+     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy", mappedBy="parent")
      */
     protected $childrens;
 
     /**
-     * @var Geoname[]
+     * @var Hierarchy[]
      *
-     * @ORM\ManyToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", mappedBy="childrens")
+     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy", mappedBy="child")
      */
     protected $parents;
 
