@@ -11,7 +11,7 @@ parameters:
     #defaults
     env(DATABASE_HOST): 127.0.0.1
     env(DATABASE_PORT): 3306
-    env(DATABASE_NAME): "geo_test"
+    env(DATABASE_NAME): "my_project"
     env(DATABASE_USER): "root"
     env(DATABASE_PASSWORD): ""
     env(DATABASE_DRIVER): pdo_mysql
