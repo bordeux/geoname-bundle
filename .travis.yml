@@ -20,6 +20,7 @@ php:
   - 7.0
   - 7.1
   - hhvm
+  - nightly
   
 matrix:
   include:
@@ -31,7 +32,7 @@ matrix:
 env:
   global:
     - deps=no
-    - DATABASE_NAME="geo_test"
+    - DATABASE_NAME="my_project"
     - DATABASE_DRIVER="pdo_mysql"
     - PGUSER=postgres
     - PGDATABASE=postgres
