@@ -160,12 +160,7 @@ class GeoName
     protected $modificationDate;
 
 
-    /**
-     * @var Hierarchy[]
-     *
-     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy", mappedBy="parent")
-     */
-    protected $childrens;
+
 
     /**
      * @var Hierarchy[]
