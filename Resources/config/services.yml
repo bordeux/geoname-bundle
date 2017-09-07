@@ -15,3 +15,7 @@ services:
     bordeux.geoname.import.country:
         class: Bordeux\Bundle\GeoNameBundle\Import\CountryImport
         arguments: ["@doctrine.orm.default_entity_manager"]
+
+    bordeux.geoname.import.hierarchy:
+        class: Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport
+        arguments: ["@doctrine.orm.default_entity_manager"]
