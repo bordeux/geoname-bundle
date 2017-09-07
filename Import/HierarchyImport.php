@@ -84,8 +84,8 @@ class HierarchyImport extends GeoNameImport
 
             $geoNameId = $row[0];
             $geoNameId2 = $row[1];
-            $geoNameId2 = $row[3] ?? null;
-            $geoNameId2 = $row[4] ?? null;
+            $geoNameId2 = isset($row[3]) ? $row[3] : null;
+            $geoNameId2 = isset($row[4]) ? $row[4] : null;
 
 
             $query = $queryBuilder->values([
