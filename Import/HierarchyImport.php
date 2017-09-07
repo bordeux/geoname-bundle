@@ -32,8 +32,9 @@ class HierarchyImport extends GeoNameImport
         $avrOneLineSize = 29.4;
         $batchSize = 10000;
 
-        return true; //tmp
-
+        if($batchSize > 1){ //temporarly
+            return true;
+        }
         $connection = $this->em->getConnection();
 
         $fileInside = basename($filePath, ".zip") . '.txt';
