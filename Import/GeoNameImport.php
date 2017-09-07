@@ -234,7 +234,9 @@ class GeoNameImport implements ImportInterface
         }
 
         foreach ($metaData->getAssociationNames() as $name) {
-            $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
+            if($metaData->isSingleValuedAssociation($name)){
+                $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
+            }
         }
 
         return $result;
