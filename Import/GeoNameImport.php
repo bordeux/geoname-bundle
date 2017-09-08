@@ -135,26 +135,33 @@ class GeoNameImport implements ImportInterface
             }
 
 
-            $query = $queryBuilder->values([
-                    $fieldsNames['id'] => (int)$geoNameId, //must be as first!
-                    $fieldsNames['name'] => $this->e($name),
-                    $fieldsNames['asciiName'] => $this->e($asciiName),
-                    $fieldsNames['latitude'] => $this->e($latitude),
-                    $fieldsNames['longitude'] => $this->e($longitude),
-                    $fieldsNames['featureClass'] => $this->e($featureClass),
-                    $fieldsNames['featureCode'] => $this->e($featureCode),
-                    $fieldsNames['countryCode'] => $this->e($countryCode),
-                    $fieldsNames['cc2'] => $this->e($cc2),
-                    $fieldsNames['population'] => $this->e($population),
-                    $fieldsNames['elevation'] => $this->e($elevation),
-                    $fieldsNames['dem'] => $this->e($dem),
-                    $fieldsNames['modificationDate'] => $this->e($modificationDate),
-                    $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
-                ]);
+            $data = [
+                $fieldsNames['id'] => (int)$geoNameId, //must be as first!
+                $fieldsNames['name'] => $this->e($name),
+                $fieldsNames['asciiName'] => $this->e($asciiName),
+                $fieldsNames['latitude'] => $this->e($latitude),
+                $fieldsNames['longitude'] => $this->e($longitude),
+                $fieldsNames['featureClass'] => $this->e($featureClass),
+                $fieldsNames['featureCode'] => $this->e($featureCode),
+                $fieldsNames['countryCode'] => $this->e($countryCode),
+                $fieldsNames['cc2'] => $this->e($cc2),
+                $fieldsNames['population'] => $this->e($population),
+                $fieldsNames['elevation'] => $this->e($elevation),
+                $fieldsNames['dem'] => $this->e($dem),
+                $fieldsNames['modificationDate'] => $this->e($modificationDate),
+                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
+            ];
+
+            if($row['id'] == 6252001 ){
+                var_dump($data); //tmp debug
+            }
+
+
+            $query = $queryBuilder->values($data);
 
 
             $buffer[] = $this->insertToReplace($query, $dbType);
