@@ -156,7 +156,7 @@ class GeoNameImport implements ImportInterface
                 $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
             ];
 
-            if($row['id'] == 6252001 ){
+            if($geoNameId == 6252001 ){
                 var_dump($data); //tmp debug
             }
 
