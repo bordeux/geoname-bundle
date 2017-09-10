@@ -69,7 +69,7 @@ class GeoNameImport implements ImportInterface
 
         $fileInside = basename($filePath, ".zip") . '.txt';
         $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int)filesize($filePath) / $avrOneLineSize;
+        $max = (int) (filesize($filePath) / $avrOneLineSize);
 
         $fieldsNames = $this->getFieldNames();
 
@@ -107,30 +107,35 @@ class GeoNameImport implements ImportInterface
             }
 
             $row = array_map('trim', $csv);
+
+            if ($row[0] == 6252001) {
+                var_dump($row); //tmp debug
+            }
+
             list(
-                    $geoNameId,
-                    $name,
-                    $asciiName,
-                    $alternateNames,
-                    $latitude,
-                    $longitude,
-                    $featureClass,
-                    $featureCode,
-                    $countryCode,
-                    $cc2,
-                    $admin1Code,
-                    $admin2Code,
-                    $admin3Code,
-                    $admin4Code,
-                    $population,
-                    $elevation,
-                    $dem,
-                    $timezone,
-                    $modificationDate
+                $geoNameId,
+                $name,
+                $asciiName,
+                $alternateNames,
+                $latitude,
+                $longitude,
+                $featureClass,
+                $featureCode,
+                $countryCode,
+                $cc2,
+                $admin1Code,
+                $admin2Code,
+                $admin3Code,
+                $admin4Code,
+                $population,
+                $elevation,
+                $dem,
+                $timezone,
+                $modificationDate
                 ) = $row;
 
 
-            if(!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)){
+            if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
                 continue;
             }
 
@@ -156,9 +161,7 @@ class GeoNameImport implements ImportInterface
                 $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
             ];
 
-            if($geoNameId == 6252001 ){
-                var_dump($data); //tmp debug
-            }
+
 
 
             $query = $queryBuilder->values($data);
@@ -176,7 +179,7 @@ class GeoNameImport implements ImportInterface
 
         }
 
-        !empty($buffer) &&  $this->save($buffer);;
+        !empty($buffer) && $this->save($buffer);;
         $connection->exec('COMMIT');
 
         return true;
@@ -188,13 +191,14 @@ class GeoNameImport implements ImportInterface
      * @return mixed
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function insertToReplace(QueryBuilder $insertSQL, $dbType){
-        if($dbType == "mysql"){
+    public function insertToReplace(QueryBuilder $insertSQL, $dbType)
+    {
+        if ($dbType == "mysql") {
             $sql = $insertSQL->getSQL();
             return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
         }
 
-        if($dbType == "postgresql"){
+        if ($dbType == "postgresql") {
             $vals = $insertSQL->getQueryPart("values");
             $sql = $insertSQL->getSQL();
             reset($vals);
@@ -202,23 +206,25 @@ class GeoNameImport implements ImportInterface
             array_shift($vals);
 
             $parts = [];
-            foreach($vals as $column => $val){
+            foreach ($vals as $column => $val) {
                 $parts[] = "{$column} = {$val}";
             }
 
-            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET ".implode(", ", $parts);
+            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET " . implode(", ", $parts);
 
             return $sql;
         }
 
         throw new \Exception("Unsupported database type");
     }
+
     /**
      * @param $queries
      * @return bool
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function save($queries){
+    public function save($queries)
+    {
         $queries = implode("; \n", $queries);
         $this->em->getConnection()->exec($queries);
 
@@ -241,7 +247,7 @@ class GeoNameImport implements ImportInterface
         }
 
         foreach ($metaData->getAssociationNames() as $name) {
-            if($metaData->isSingleValuedAssociation($name)){
+            if ($metaData->isSingleValuedAssociation($name)) {
                 $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
             }
         }
