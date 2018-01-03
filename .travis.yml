@@ -61,7 +61,7 @@ install:
   - ./Tests/Resources/app/console doctrine:schema:update --force
 
 script:
-  - ./vendor/bin/phpunit -v --coverage-clover ./build/logs/clover.xml
+  - ./vendor/bin/phpunit -v --coverage-clover ./build/logs/clover.xml | grep -v 'debug'
 
 
 after_script:
