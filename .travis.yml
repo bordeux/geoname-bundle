@@ -19,6 +19,7 @@ php:
   - 5.6
   - 7.0
   - 7.1
+  - 7.2
   - hhvm
   - nightly
   
@@ -28,7 +29,9 @@ matrix:
       env: SYMFONY_VERSION="2.8.*@dev"
     - php: 5.6
       env: SYMFONY_VERSION="3.0.*@dev"
-
+    - php: 7.1
+      env: SYMFONY_VERSION="3.4"
+      
 env:
   global:
     - deps=no
@@ -36,6 +39,7 @@ env:
     - DATABASE_DRIVER="pdo_mysql"
     - PGUSER=postgres
     - PGDATABASE=postgres
+    - SYMFONY_DEBUG="0"
     
   matrix:
     - DATABASE_DRIVER="pdo_pgsql"
