@@ -39,7 +39,6 @@ env:
     - DATABASE_DRIVER="pdo_mysql"
     - PGUSER=postgres
     - PGDATABASE=postgres
-    - SYMFONY_DEBUG="0"
     
   matrix:
     - DATABASE_DRIVER="pdo_pgsql"
@@ -61,7 +60,7 @@ install:
   - ./Tests/Resources/app/console doctrine:schema:update --force
 
 script:
-  - ./vendor/bin/phpunit -v --coverage-clover ./build/logs/clover.xml | grep -v 'debug'
+  - ./vendor/bin/phpunit -v --coverage-clover ./build/logs/clover.xml
 
 
 after_script:
