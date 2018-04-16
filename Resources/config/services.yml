@@ -29,4 +29,5 @@ services:
     #auto register all commands
     Bordeux\Bundle\GeoNameBundle\Command\:
         resource: '../../Command/*'
-        tags: ['console.command']
+        tags:
+              - { name: console.command }
