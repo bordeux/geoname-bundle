@@ -89,10 +89,31 @@ class ImportCommand extends ContainerAwareCommand
                 "Download dir",
                 null
             )
-            ->addOption("skip-admin1", null, InputOption::VALUE_OPTIONAL, null, false)
-            ->addOption("skip-admin2", null, InputOption::VALUE_OPTIONAL, null, false)
-            ->addOption("skip-geoname", null, InputOption::VALUE_OPTIONAL, null, false)
-            ->addOption("skip-hierarchy", null, InputOption::VALUE_OPTIONAL, null, false)
+            ->addOption(
+                "skip-admin1",
+                null,
+                InputOption::VALUE_OPTIONAL,
+                '',
+                false)
+            ->addOption(
+                "skip-admin2",
+                null,
+                InputOption::VALUE_OPTIONAL,
+                '',
+                false)
+            ->addOption(
+                "skip-geoname",
+                null,
+                InputOption::VALUE_OPTIONAL,
+                '',
+                false)
+            ->addOption(
+                "skip-hierarchy",
+                null,
+                InputOption::VALUE_OPTIONAL,
+                '',
+                false
+            )
             ->setDescription('Import GeoNames');
     }
 
