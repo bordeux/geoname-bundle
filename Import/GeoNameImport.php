@@ -108,10 +108,6 @@ class GeoNameImport implements ImportInterface
 
             $row = array_map('trim', $csv);
 
-            if ($row[0] == 6252001) {
-                var_dump($row); //tmp debug
-            }
-
             list(
                 $geoNameId,
                 $name,

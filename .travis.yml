@@ -22,9 +22,11 @@ php:
   
 matrix:
   include:
-    - php: 7.1
+    - php: 5.6
+      env: SYMFONY_VERSION="2.8.*@dev"
+    - php: 5.6
       env: SYMFONY_VERSION="3.0.*@dev"
-    - php: 7.2
+    - php: 7.1
       env: SYMFONY_VERSION="3.4"
 
 env:
