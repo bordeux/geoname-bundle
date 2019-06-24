@@ -8,7 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
  * GeoName
  *
  * @ORM\Table(name="geo__name" ,indexes={
- *     @ORM\Index(name="geoname_geoname_search_idx", columns={"name", "country_code"})
+ *     @ORM\Index(name="geoname_geoname_search_idx", columns={"name", "country_code"}),
+ *     @ORM\Index(name="geoname_feature_code_idx", columns={"feature_code"})
  * })
  * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\GeoNameRepository")
  */
