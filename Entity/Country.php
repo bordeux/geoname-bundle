@@ -145,6 +145,9 @@ class Country
      */
     protected $geoName;
 
+    public function __toString() {
+        return $this->name;
+    }
     /**
      * Country constructor.
      * @author Chris Bednarczyk <chris@tourradar.com>
