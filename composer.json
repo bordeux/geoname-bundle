@@ -1,5 +1,5 @@
 {
-    "name": "bordeux/geoname-bundle",
+    "name": "jindosanda/geoname-bundle",
     "type": "symfony-bundle",
     "description": "Symfony GeoNameBundle",
     "keywords": ["geoname", "geonameid"],
