@@ -41,7 +41,7 @@ covered worldwide.
 1. Install the bundle using composer:
 
     ```sh
-    composer require bordeux/geoname-bundle
+    composer require jindosanda/geoname-bundle
     ```
 
 
