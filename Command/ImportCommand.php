@@ -3,28 +3,39 @@
 namespace Bordeux\Bundle\GeoNameBundle\Command;
 
 
+use Bordeux\Bundle\GeoNameBundle\Import\CountryImport;
 use Bordeux\Bundle\GeoNameBundle\Import\ImportInterface;
 use GuzzleHttp\Client;
+use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Uri;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Class VisitQueueCommand
  * @author Chris Bednarczyk <chris@tourradar.com>
  * @package TourRadar\Bundle\ApiBundle\Command\Queue
  */
-class ImportCommand extends ContainerAwareCommand
+class ImportCommand extends Command implements ContainerAwareInterface
 {
+
+    use ContainerAwareTrait;
 
     /**
      *
      */
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
 
+    private function getContainer()
+    {
+        return $this->container;
+    }
     /**
      * Configuration method
      */
@@ -282,6 +293,8 @@ class ImportCommand extends ContainerAwareCommand
 
         $output->writeln("Imported successfully! Thank you :) ");
 
+        return 0;
+
     }
 
     /**
@@ -321,6 +334,25 @@ class ImportCommand extends ContainerAwareCommand
      */
     public function downloadWithProgressBar($url, $saveAs, OutputInterface $output)
     {
+        if (file_exists($saveAs)) {
+            $output->writeln($saveAs . " exists in the cache.");
+
+            $promise = new Promise();
+            $promise->then(
+            // $onFulfilled
+                function ($value) {
+                    echo 'The promise was fulfilled.';
+                },
+                // $onRejected
+                function ($reason) {
+                    echo 'The promise was rejected.';
+                }
+            );
+
+            $promise->resolve("In cache!");
+            return $promise;
+        }
+
         $progress = new ProgressBar($output, 100);
         $progress->setFormat(self::PROGRESS_FORMAT);
         $progress->setMessage("Start downloading {$url}");
