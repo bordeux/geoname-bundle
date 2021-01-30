@@ -2,6 +2,11 @@ Geonames Bundle
 ===============
 [![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
 
+# CREDITS [IMPORTANT]
+
+All the work was originaly done by Krzysztof Bednarczyk <krzysztof@bednarczyk.me>. This package is a fork to get a fast fix on error happening on
+symfony 5.
+
 # Introduction
 
 Provides access to the data exported by [GeoNames.org][1] into  [Symfony 2][2] and [Symfony 3][2]
