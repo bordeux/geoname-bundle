@@ -329,7 +329,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
     public function downloadWithProgressBar(string $url, string $saveAs, OutputInterface $output): PromiseInterface
     {
         if (file_exists($saveAs) && is_file($saveAs)) {
-            $output->writeln($saveAs . " exists in the cache.");
+            $output->writeln($saveAs . " exists locally, skipping");
             $promise = new Promise();
             $promise->resolve("In cache!");
             return $promise;

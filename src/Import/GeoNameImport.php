@@ -3,6 +3,9 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
+use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
+use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
@@ -69,21 +72,21 @@ class GeoNameImport implements ImportInterface
         $fieldsNames = $this->getFieldNames();
 
         $geoNameTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:GeoName")
+            ->getClassMetadata(GeoName::class)
             ->getTableName();
 
         $timezoneTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Timezone")
+            ->getClassMetadata(Timezone::class)
             ->getTableName();
 
         $administrativeTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Administrative")
+            ->getClassMetadata(Administrative::class)
             ->getTableName();
 
 
         $dbType = $connection->getDatabasePlatform()->getName();
 
-        $connection->exec("START TRANSACTION");
+        $connection->executeStatement("START TRANSACTION");
 
         $pos = 0;
 
@@ -100,8 +103,6 @@ class GeoNameImport implements ImportInterface
             if (!isset($csv[0]) || !is_numeric($csv[0])) {
                 continue;
             }
-
-            $row = array_map('trim', $csv);
 
             list(
                 $geoNameId,
@@ -123,7 +124,7 @@ class GeoNameImport implements ImportInterface
                 $dem,
                 $timezone,
                 $modificationDate
-                ) = $row;
+                ) = array_map('trim', $csv);
 
 
             if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
@@ -170,8 +171,8 @@ class GeoNameImport implements ImportInterface
 
         }
 
-        !empty($buffer) && $this->save($buffer);;
-        $connection->exec('COMMIT');
+        !empty($buffer) && $this->save($buffer);
+        $connection->executeStatement('COMMIT');
 
         return true;
     }
@@ -229,7 +230,7 @@ class GeoNameImport implements ImportInterface
      */
     public function getFieldNames()
     {
-        $metaData = $this->em->getClassMetadata("BordeuxGeoNameBundle:GeoName");
+        $metaData = $this->em->getClassMetadata(GeoName::class);
 
         $result = [];
 

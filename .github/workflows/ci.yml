@@ -5,6 +5,20 @@ jobs:
   tests:
     name: PHPUnit PHP ${{ matrix.php }} ${{ matrix.dependency }} (Symfony ${{ matrix.symfony }})
     runs-on: ubuntu-20.04
+    services:
+      database:
+        image: postgres:13
+        env:
+          POSTGRES_DB: app
+          POSTGRES_PASSWORD: ChangeMe
+          POSTGRES_USER: symfony
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       matrix:
         php:
@@ -61,3 +75,11 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/phpunit
+        env:
+          DB_DRIVER: pdo_pgsql
+          DB_HOST: database
+          DB_PORT: 5432
+          DB_NAME: app
+          DB_USER: symfony
+          DB_PASSWORD: ChangeMe
+          DB_VERSION: ${POSTGRES_VERSION:-13}

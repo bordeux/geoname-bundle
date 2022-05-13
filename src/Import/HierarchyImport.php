@@ -4,6 +4,7 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManager;
@@ -38,7 +39,7 @@ class HierarchyImport extends GeoNameImport
         $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
         $max = (int)filesize($filePath) / $avrOneLineSize;
         $geoNameTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:GeoName")
+            ->getClassMetadata(GeoName::class)
             ->getTableName();
 
         $dbType = $connection->getDatabasePlatform()->getName();

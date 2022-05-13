@@ -43,7 +43,7 @@ class CountryImport implements ImportInterface
         /** @var Promise $promise */
         $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
             $promise->resolve(
-                $self->_import($filePath, $progress)
+                $self->importData($filePath, $progress)
             );
         }));
 
@@ -53,10 +53,10 @@ class CountryImport implements ImportInterface
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return PromiseInterface
+     * @return bool
      * @throws \Doctrine\DBAL\Exception
      */
-    protected function _import(string $filePath, ?callable $progress = null): PromiseInterface
+    protected function importData(string $filePath, ?callable $progress = null)
     {
         $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
@@ -151,11 +151,11 @@ class CountryImport implements ImportInterface
 
 
         $geoNameTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:GeoName")
+            ->getClassMetadata(GeoName::class)
             ->getTableName();
 
         $countryTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Country")
+            ->getClassMetadata(Country::class)
             ->getTableName();
 
         $sql = <<<UpdateSelect

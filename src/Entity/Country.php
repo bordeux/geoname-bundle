@@ -153,6 +153,16 @@ class Country implements Stringable
     }
 
     /**
+     * @param int $id
+     * @return $this
+     */
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getIso(): string
@@ -343,10 +353,10 @@ class Country implements Stringable
     }
 
     /**
-     * @param string $currencyName
+     * @param string|null $currencyName
      * @return $this
      */
-    public function setCurrencyName(string $currencyName): self
+    public function setCurrencyName(?string $currencyName): self
     {
         $this->currencyName = $currencyName;
         return $this;
