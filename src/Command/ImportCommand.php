@@ -366,8 +366,10 @@ class ImportCommand extends Command implements ContainerAwareInterface
         $promise = $client->getAsync(
             new Uri($url),
             [
-                'progress' => function ($totalSize, $downloadedSize) use ($progress) {
-                    $totalSize && is_callable($progress) && $progress($downloadedSize / $totalSize);
+                'progress' => function ($downloadTotal, $downloadedBytes) use ($progress) {
+                    if ($downloadTotal && is_callable($progress)) {
+                        $progress($downloadedBytes / $downloadTotal);
+                    }
                 },
                 'sink' => $saveAs,
                 'save_to' => $saveAs, // support guzzle 6

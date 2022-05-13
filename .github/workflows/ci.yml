@@ -26,9 +26,6 @@ jobs:
         php:
           - '8.0'
           - '8.1'
-        dependency:
-          - ''
-          - 'lowest'
         symfony:
           - '4.4.*'
           - '5.4.*'
@@ -65,12 +62,7 @@ jobs:
           restore-keys: ${{ matrix.php }}-composer-
 
       - name: Update project dependencies
-        if: matrix.dependency == ''
         run: composer update --no-progress --ansi --prefer-stable
-
-      - name: Update project dependencies lowest
-        if: matrix.dependency == 'lowest'
-        run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
 
       - name: Validate composer
         run: composer validate --strict --no-check-lock
