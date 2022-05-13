@@ -10,18 +10,25 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
+/**
+ * Class ImportCommandTest
+ * @package Bordeux\Bundle\GeoNameBundle\Tests\Command
+ */
 class ImportCommandTest extends WebTestCase
 {
     /**
      * @inheritDoc
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         static::$kernel = static::createKernel();
         static::$kernel->boot();
     }
 
-    public function testDownload()
+    /**
+     * @throws \Exception
+     */
+    public function testDownload(): void
     {
         $application = new Application(static::$kernel);
         $application->add(new ImportCommand());
