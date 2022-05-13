@@ -3,12 +3,10 @@
 namespace Bordeux\Bundle\GeoNameBundle\Command;
 
 
-use Bordeux\Bundle\GeoNameBundle\Import\CountryImport;
 use Bordeux\Bundle\GeoNameBundle\Import\ImportInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Uri;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
