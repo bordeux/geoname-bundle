@@ -15,30 +15,9 @@ jobs:
         with:
           php-version: 8.0
           coverage: none
-          tools: php-cs-fixer:3, cs2pr
 
-      - name: PHP-CS-Fixer
-        run: composer cs:check
-
-  psalm:
-    name: Psalm
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.0
-          coverage: none
-          tools: vimeo/psalm:4.8.1
-
-      - name: Download dependencies
-        uses: ramsey/composer-install@v1
-
-      - name: Psalm
-        run: psalm --no-progress --output-format=github
+      - name: PHP-CodeStandard
+        run: composer install && composer cs:check
 
   composer-normalize:
     name: Composer Normalize
