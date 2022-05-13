@@ -1,14 +1,12 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\Country;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\PromiseInterface;
 use SplFileObject;
 
 /**
@@ -18,30 +16,27 @@ use SplFileObject;
  */
 class CountryImport implements ImportInterface
 {
-
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
     protected $em;
 
     /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
+     * CountryImport constructor.
+     * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }
 
 
     /**
-     * @param  string $filePath
+     * @param string $filePath
      * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function import($filePath, callable $progress = null)
+    public function import(string $filePath, ?callable $progress = null): PromiseInterface
     {
         $self = $this;
         /** @var Promise $promise */
@@ -57,10 +52,10 @@ class CountryImport implements ImportInterface
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
+     * @throws \Doctrine\DBAL\Exception
      */
-    protected function _import($filePath, callable $progress = null)
+    protected function _import(string $filePath, ?callable $progress = null): PromiseInterface
     {
         $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
@@ -164,10 +159,10 @@ class CountryImport implements ImportInterface
 
         $sql = <<<UpdateSelect
             UPDATE
-                {$geoNameTableName} 
+                {$geoNameTableName}
             SET
                 country_id = (
-                    SELECT 
+                    SELECT
                         id
                     FROM
                         {$countryTableName} _c

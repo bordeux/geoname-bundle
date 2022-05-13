@@ -5,41 +5,38 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\PromiseInterface;
 use SplFileObject;
 
 /**
  * Class TimeZoneImport
- * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
 class TimeZoneImport implements ImportInterface
 {
-
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
-    protected $em;
+    protected EntityManagerInterface $em;
 
     /**
      * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
+     * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }
 
 
     /**
-     * @param  string $filePath
+     * @param string $filePath
      * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function import($filePath, callable $progress = null)
+    public function import(string $filePath, ?callable $progress = null): PromiseInterface
     {
         $self = $this;
         /** @var Promise $promise */
@@ -72,11 +69,11 @@ class TimeZoneImport implements ImportInterface
         $pos = -1;
 
         foreach ($file as $row) {
-            if($pos == -1){
+            if ($pos == -1) {
                 $pos++;
                 continue;
             }
-            $row = array_map('trim',$row);
+            $row = array_map('trim', $row);
             list(
                 $countryCode,
                 $timezone,
@@ -89,9 +86,9 @@ class TimeZoneImport implements ImportInterface
             $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
             $object->setTimezone($timezone);
             $object->setCountryCode($countryCode);
-            $object->setGmtOffset((float) $gmtOffset);
-            $object->setDstOffset((float) $dstOffset);
-            $object->setRawOffset((float) $rawOffset);
+            $object->setGmtOffset((float)$gmtOffset);
+            $object->setDstOffset((float)$dstOffset);
+            $object->setRawOffset((float)$rawOffset);
 
             !$object->getId() && $this->em->persist($object);
             is_callable($progress) && $progress(($pos++) / $max);

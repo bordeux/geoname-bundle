@@ -1,22 +1,15 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-
-use GuzzleHttp\Promise\Promise;
-use SplFileObject;
+use GuzzleHttp\Promise\PromiseInterface;
 
 interface ImportInterface
 {
-
     /**
-     * @param  string $filePath
+     * @param string $filePath
      * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function import($filePath, callable $progress = null);
-
-
+    public function import(string $filePath, ?callable $progress = null): PromiseInterface;
 }

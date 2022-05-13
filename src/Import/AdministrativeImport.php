@@ -7,7 +7,9 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\PromiseInterface;
 use SplFileObject;
 
 /**
@@ -19,28 +21,27 @@ class AdministrativeImport implements ImportInterface
 {
 
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface|EntityManager
      */
-    protected $em;
+    protected EntityManagerInterface $em;
 
     /**
      * TimeZoneImport constructor.
      * @author Chris Bednarczyk <chris@tourradar.com>
      * @param EntityManager $em
      */
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }
 
 
     /**
-     * @param  string $filePath
+     * @param string $filePath
      * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function import($filePath, callable $progress = null)
+    public function import(string $filePath, ?callable $progress = null): PromiseInterface
     {
         $self = $this;
         /** @var Promise $promise */

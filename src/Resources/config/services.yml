@@ -1,30 +1,12 @@
 services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+
   Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport:
-    autowire: true
-    public: true
-    alias: bordeux.geoname.import.timezone
-
   Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport:
-    autowire: true
-    public: true
-    alias: bordeux.geoname.import.administrative
-
   Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport:
-    autowire: true
-    public: true
-    alias: bordeux.geoname.import.geoname
-
   Bordeux\Bundle\GeoNameBundle\Import\CountryImport:
-    autowire: true
-    public: true
-    alias: bordeux.geoname.import.country
-
   Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport:
-    autowire: true
-    public: true
-    alias: bordeux.geoname.import.hierarchy
-
   Bordeux\Bundle\GeoNameBundle\Command\ImportCommand:
-    alias: bordeux.geoname.command.import
-    tags:
-      - { name: console.command }

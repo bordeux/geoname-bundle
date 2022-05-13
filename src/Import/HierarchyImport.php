@@ -17,9 +17,6 @@ use SplFileObject;
  */
 class HierarchyImport extends GeoNameImport
 {
-
-
-
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -40,21 +37,9 @@ class HierarchyImport extends GeoNameImport
         $fileInside = basename($filePath, ".zip") . '.txt';
         $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
         $max = (int)filesize($filePath) / $avrOneLineSize;
-
-        $fieldsNames = $this->getFieldNames();
-
         $geoNameTableName = $this->em
             ->getClassMetadata("BordeuxGeoNameBundle:GeoName")
             ->getTableName();
-
-        $timezoneTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Timezone")
-            ->getTableName();
-
-        $administrativeTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Administrative")
-            ->getTableName();
-
 
         $dbType = $connection->getDatabasePlatform()->getName();
 
@@ -72,7 +57,8 @@ class HierarchyImport extends GeoNameImport
             if (!is_array($csv)) {
                 continue;
             }
-            if (!isset($csv[0]) || !is_numeric($csv[0])) {
+
+            if (!is_numeric($csv[0] ?? null)) {
                 continue;
             }
 

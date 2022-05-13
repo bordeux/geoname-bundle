@@ -6,7 +6,7 @@ use Bordeux\Bundle\GeoNameBundle\Command\ImportCommand;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\StreamOutput;
  * Class ImportCommandTest
  * @package Bordeux\Bundle\GeoNameBundle\Tests\Command
  */
-class ImportCommandTest extends WebTestCase
+class ImportCommandTest extends KernelTestCase
 {
     /**
      * @inheritDoc

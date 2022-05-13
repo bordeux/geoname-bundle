@@ -3,7 +3,12 @@
 namespace Bordeux\Bundle\GeoNameBundle\Command;
 
 
+use Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport;
+use Bordeux\Bundle\GeoNameBundle\Import\CountryImport;
+use Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport;
+use Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport;
 use Bordeux\Bundle\GeoNameBundle\Import\ImportInterface;
+use Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Uri;
@@ -160,13 +165,11 @@ class ImportCommand extends Command implements ContainerAwareInterface
         )->wait();
         $output->writeln('');
 
-
         //importing
-
         $output->writeln('');
 
         $this->importWithProgressBar(
-            $this->getContainer()->get("bordeux.geoname.import.timezone"),
+            $this->getContainer()->get(TimeZoneImport::class),
             $timezonesLocal,
             "Importing timezones",
             $output
@@ -187,7 +190,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get("bordeux.geoname.import.administrative"),
+                $this->getContainer()->get(AdministrativeImport::class),
                 $admin1Local,
                 "Importing administrative 1",
                 $output
@@ -210,7 +213,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get("bordeux.geoname.import.administrative"),
+                $this->getContainer()->get(AdministrativeImport::class),
                 $admin2Local,
                 "Importing administrative 2",
                 $output
@@ -234,7 +237,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get("bordeux.geoname.import.geoname"),
+                $this->getContainer()->get(GeoNameImport::class),
                 $archiveLocal,
                 "Importing GeoNames",
                 $output,
@@ -247,7 +250,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
 
         //countries import
         $this->importWithProgressBar(
-            $this->getContainer()->get("bordeux.geoname.import.country"),
+            $this->getContainer()->get(CountryImport::class),
             $countryInfoLocal,
             "Importing Countries",
             $output
@@ -267,7 +270,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get("bordeux.geoname.import.hierarchy"),
+                $this->getContainer()->get(HierarchyImport::class),
                 $archiveLocal,
                 "Importing Hierarchy",
                 $output,

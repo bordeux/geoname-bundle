@@ -1,14 +1,12 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
-use SplFileObject;
+use GuzzleHttp\Promise\PromiseInterface;
 
 /**
  * Class GeoNameImport
@@ -17,30 +15,27 @@ use SplFileObject;
  */
 class GeoNameImport implements ImportInterface
 {
+    /**
+     * @var EntityManagerInterface
+     */
+    protected EntityManagerInterface $em;
 
     /**
-     * @var EntityManager
+     * GeoNameImport constructor.
+     * @param EntityManagerInterface $em
      */
-    protected $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
-     */
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }
 
 
     /**
-     * @param  string $filePath
+     * @param string $filePath
      * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function import($filePath, callable $progress = null)
+    public function import(string $filePath, ?callable $progress = null): PromiseInterface
     {
         $self = $this;
         /** @var Promise $promise */
