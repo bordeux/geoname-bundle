@@ -1,10 +1,11 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
+![Build Status](https://github.com/bordeux/geoname-bundle/actions/workflows/ci.yml/badge.svg)
+[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
 
 # Introduction
 
-Provides access to the data exported by [GeoNames.org][1] into  [Symfony 4^][2]
+Provides access to the data exported by [GeoNames.org][1] into  [Symfony 4, 5, 6][2]
 applications.
 
 
