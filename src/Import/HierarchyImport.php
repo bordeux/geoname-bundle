@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
-
 
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
@@ -19,18 +17,18 @@ use SplFileObject;
 class HierarchyImport extends GeoNameImport
 {
     /**
-     * @param string $filePath
+     * @param $filePath
      * @param callable|null $progress
      * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @throws \Doctrine\DBAL\Exception
      */
-    protected function _import($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null)
     {
 
         $avrOneLineSize = 29.4;
         $batchSize = 10000;
 
-        if($batchSize > 1){ //temporarly
+        if ($batchSize > 1) { //temporarly
             return true;
         }
         $connection = $this->em->getConnection();
@@ -65,15 +63,9 @@ class HierarchyImport extends GeoNameImport
 
             $row = array_map('trim', $csv);
 
-            if(!isset($row[0]) || !isset($row[1])){
+            if (!isset($row[0]) || !isset($row[1])) {
                 continue;
             }
-
-            $geoNameId = $row[0];
-            $geoNameId2 = $row[1];
-            $geoNameId2 = isset($row[3]) ? $row[3] : null;
-            $geoNameId2 = isset($row[4]) ? $row[4] : null;
-
 
             $query = $queryBuilder->values([
 
@@ -89,14 +81,12 @@ class HierarchyImport extends GeoNameImport
                 $buffer = [];
                 is_callable($progress) && $progress(($pos) / $max);
             }
-
         }
 
-        !empty($buffer) &&  $this->save($buffer);;
+        !empty($buffer) &&  $this->save($buffer);
+
         $connection->exec('COMMIT');
 
         return true;
     }
-
-
 }

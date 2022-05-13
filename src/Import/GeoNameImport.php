@@ -2,7 +2,6 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
@@ -44,7 +43,7 @@ class GeoNameImport implements ImportInterface
         /** @var Promise $promise */
         $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
             $promise->resolve(
-                $self->_import($filePath, $progress)
+                $self->importData($filePath, $progress)
             );
         }));
 
@@ -52,12 +51,12 @@ class GeoNameImport implements ImportInterface
     }
 
     /**
-     * @param string $filePath
+     * @param $filePath
      * @param callable|null $progress
      * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @throws \Doctrine\DBAL\Exception
      */
-    protected function _import($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null)
     {
 
         $avrOneLineSize = 29.4;
@@ -168,7 +167,6 @@ class GeoNameImport implements ImportInterface
                 $buffer = [];
                 is_callable($progress) && $progress(($pos) / $max);
             }
-
         }
 
         !empty($buffer) && $this->save($buffer);
@@ -259,5 +257,4 @@ class GeoNameImport implements ImportInterface
         }
         return $this->em->getConnection()->quote($val);
     }
-
 }

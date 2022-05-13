@@ -2,7 +2,6 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Command;
 
-
 use Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport;
 use Bordeux\Bundle\GeoNameBundle\Import\CountryImport;
 use Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport;
@@ -105,19 +104,22 @@ class ImportCommand extends Command implements ContainerAwareInterface
                 null,
                 InputOption::VALUE_OPTIONAL,
                 '',
-                false)
+                false
+            )
             ->addOption(
                 "skip-admin2",
                 null,
                 InputOption::VALUE_OPTIONAL,
                 '',
-                false)
+                false
+            )
             ->addOption(
                 "skip-geoname",
                 null,
                 InputOption::VALUE_OPTIONAL,
                 '',
-                false)
+                false
+            )
             ->addOption(
                 "skip-hierarchy",
                 null,
@@ -289,7 +291,6 @@ class ImportCommand extends Command implements ContainerAwareInterface
         $output->writeln("Imported successfully! Thank you :) ");
 
         return 0;
-
     }
 
     /**

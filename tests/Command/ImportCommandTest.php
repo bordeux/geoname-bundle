@@ -36,12 +36,12 @@ class ImportCommandTest extends KernelTestCase
         $command = $this->application->find(static::DOCTRINE_COMMAND);
         $command->setApplication($this->application);
 
-        $this->output = new StreamOutput(fopen('php://stdout', 'wb', false));;
+        $this->output = new StreamOutput(fopen('php://stdout', 'wb', false));
+        ;
         $command->run(new ArrayInput([
             'command' => static::DOCTRINE_COMMAND,
             '--force' => true
         ]), $this->output);
-
     }
 
     /**

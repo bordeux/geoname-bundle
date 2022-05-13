@@ -83,4 +83,3 @@ class Hierarchy
         return $this;
     }
 }
-

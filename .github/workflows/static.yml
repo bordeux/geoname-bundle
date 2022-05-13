@@ -18,7 +18,7 @@ jobs:
           tools: php-cs-fixer:3, cs2pr
 
       - name: PHP-CS-Fixer
-        run: php-cs-fixer fix --dry-run --format=checkstyle | cs2pr
+        run: composer cs:check
 
   psalm:
     name: Psalm

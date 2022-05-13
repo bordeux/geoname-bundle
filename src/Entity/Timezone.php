@@ -165,4 +165,3 @@ class Timezone implements Stringable
         return $this->getTimezone();
     }
 }
-

@@ -488,4 +488,3 @@ class GeoName
         return $this->country;
     }
 }
-

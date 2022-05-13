@@ -460,4 +460,3 @@ class Country implements Stringable
         return $this->getName();
     }
 }
-

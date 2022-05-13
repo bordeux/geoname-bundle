@@ -2,7 +2,6 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-
 use Bordeux\Bundle\GeoNameBundle\Entity\Country;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Doctrine\ORM\EntityManagerInterface;
@@ -74,9 +73,9 @@ class CountryImport implements ImportInterface
             ->beginTransaction();
 
         foreach ($file as $row) {
-            $row = array_map('trim',$row);
+            $row = array_map('trim', $row);
 
-            if(count($row) < 17){
+            if (count($row) < 17) {
                 continue;
             }
 
@@ -102,7 +101,7 @@ class CountryImport implements ImportInterface
                 ) = $row;
 
 
-            if(!is_numeric($geoNameId)){
+            if (!is_numeric($geoNameId)) {
                 continue;
             }
 
@@ -137,7 +136,7 @@ class CountryImport implements ImportInterface
 
             is_callable($progress) && $progress(($pos++) / $max);
 
-            if($pos % 100){
+            if ($pos % 100) {
                 $this->em->flush();
                 $this->em->clear();
             }
@@ -180,5 +179,4 @@ UpdateSelect;
 
         return true;
     }
-
 }

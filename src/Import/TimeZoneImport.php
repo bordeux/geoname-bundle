@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
-
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,7 +40,7 @@ class TimeZoneImport implements ImportInterface
         /** @var Promise $promise */
         $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
             $promise->resolve(
-                $self->_import($filePath, $progress)
+                $self->importData($filePath, $progress)
             );
         }));
 
@@ -50,12 +48,11 @@ class TimeZoneImport implements ImportInterface
     }
 
     /**
-     * @param string $filePath
+     * @param $filePath
      * @param callable|null $progress
      * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    protected function _import($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null)
     {
         $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
@@ -99,5 +96,4 @@ class TimeZoneImport implements ImportInterface
 
         return true;
     }
-
 }

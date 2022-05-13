@@ -13,9 +13,9 @@
     ],
     "require": {
         "php": ">=8.0",
-        "symfony/framework-bundle": "~4.0|~5.0|~6.0|~6.1",
-        "symfony/console": "~4.0|~5.0|~6.0",
-        "symfony/dependency-injection": "~4.0|~5.0|~6.0|~6.1",
+        "symfony/framework-bundle": "^4.0|^5.0|^6.0",
+        "symfony/console": "^4.0|^5.0|^6.0",
+        "symfony/dependency-injection": "^4.0|^5.0|^6.0",
         "doctrine/doctrine-bundle": "^2.0",
         "guzzlehttp/guzzle": "^6.0|^7.0"
     },
@@ -23,7 +23,7 @@
         "roave/security-advisories": "dev-latest",
         "phpunit/phpunit": "^9.5.20",
         "doctrine/orm": "^2.5",
-        "symfony/yaml": "~4.0|~5.0|~6.0|~6.1"
+        "symfony/yaml": "^4.0|^5.0|^6.0"
     },
     "autoload": {
         "psr-4": { "Bordeux\\Bundle\\GeoNameBundle\\": "src/" }
@@ -39,6 +39,14 @@
         }
     },
     "scripts": {
+        "cs:check": [
+            "@php -r \"file_exists('bin/phpcs') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar', 'vendor/bin/phpcs');\"",
+            "@php ./vendor/bin/phpcs"
+        ],
+        "cs:fix": [
+            "@php -r \"file_exists('bin/phpcbf') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar', 'vendor/bin/phpcbf');\"",
+            "@php ./vendor/bin/phpcbf"
+        ],
         "tests": [
             "@php ./vendor/bin/phpunit"
         ]

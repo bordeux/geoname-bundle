@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Bordeux\Bundle\GeoNameBundle\Import;
-
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
@@ -19,7 +17,6 @@ use SplFileObject;
  */
 class AdministrativeImport implements ImportInterface
 {
-
     /**
      * @var EntityManagerInterface|EntityManager
      */
@@ -47,7 +44,7 @@ class AdministrativeImport implements ImportInterface
         /** @var Promise $promise */
         $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
             $promise->resolve(
-                $self->_import($filePath, $progress)
+                $self->importData($filePath, $progress)
             );
         }));
 
@@ -60,7 +57,7 @@ class AdministrativeImport implements ImportInterface
      * @return bool
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    protected function _import($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null)
     {
         $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
@@ -74,7 +71,7 @@ class AdministrativeImport implements ImportInterface
         $pos = 0;
 
         foreach ($file as $row) {
-            $row = array_map('trim',$row);
+            $row = array_map('trim', $row);
             list(
                 $code,
                 $name,
@@ -92,7 +89,7 @@ class AdministrativeImport implements ImportInterface
 
             is_callable($progress) && $progress(($pos++) / $max);
 
-            if($pos % 10000){
+            if ($pos % 10000) {
                 $this->em->flush();
                 $this->em->clear();
             }
@@ -103,5 +100,4 @@ class AdministrativeImport implements ImportInterface
 
         return true;
     }
-
 }

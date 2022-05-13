@@ -130,4 +130,3 @@ class Administrative
         return $this;
     }
 }
-
