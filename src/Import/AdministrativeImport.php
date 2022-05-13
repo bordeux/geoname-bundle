@@ -69,7 +69,7 @@ class AdministrativeImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $administrative = $this->em->getRepository("BordeuxGeoNameBundle:Administrative");
+        $administrative = $this->em->getRepository(Administrative::class);
 
         $pos = 0;
 

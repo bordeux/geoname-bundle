@@ -16,6 +16,12 @@ use Symfony\Component\Console\Output\StreamOutput;
  */
 class ImportCommandTest extends KernelTestCase
 {
+    private const DOCTRINE_COMMAND = "doctrine:schema:update";
+
+    protected $application;
+
+    protected $output;
+
     /**
      * @inheritDoc
      */
@@ -23,6 +29,19 @@ class ImportCommandTest extends KernelTestCase
     {
         static::$kernel = static::createKernel();
         static::$kernel->boot();
+        $this->application = new Application(static::$kernel);
+        $this->application->add(new ImportCommand());
+        $this->application->getHelp();
+
+        $command = $this->application->find(static::DOCTRINE_COMMAND);
+        $command->setApplication($this->application);
+
+        $this->output = new StreamOutput(fopen('php://stdout', 'wb', false));;
+        $command->run(new ArrayInput([
+            'command' => static::DOCTRINE_COMMAND,
+            '--force' => true
+        ]), $this->output);
+
     }
 
     /**
@@ -30,11 +49,8 @@ class ImportCommandTest extends KernelTestCase
      */
     public function testDownload(): void
     {
-        $application = new Application(static::$kernel);
-        $application->add(new ImportCommand());
-
-        $command = $application->find('bordeux:geoname:import');
-        $command->setApplication($application);
+        $command = $this->application->find('bordeux:geoname:import');
+        $command->setApplication($this->application);
 
 
         $input = new ArrayInput([
@@ -42,17 +58,13 @@ class ImportCommandTest extends KernelTestCase
             '--archive' => 'http://download.geonames.org/export/dump/AX.zip'
         ]);
 
-        $output = new StreamOutput(fopen('php://stdout', 'w', false));;
+        $result = $command->run($input, $this->output);
 
-        $result = $command->run($input, $output);
-
-
-        $this->assertEquals((int) $result, 0);
-
+        $this->assertEquals($result, 0);
 
         $geoNameRepo = self::$kernel->getContainer()
             ->get("doctrine")
-            ->getRepository("BordeuxGeoNameBundle:GeoName");
+            ->getRepository(GeoName::class);
 
         /** @var GeoName $ytterskaer */
         $ytterskaer = $geoNameRepo->find(630694);
@@ -69,7 +81,4 @@ class ImportCommandTest extends KernelTestCase
         $this->assertInstanceOf(Timezone::class, $timezone);
         $this->assertEquals($timezone->getTimezone(), 'Europe/Mariehamn');
     }
-
-
-
 }

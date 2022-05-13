@@ -11,6 +11,7 @@ use Bordeux\Bundle\GeoNameBundle\Import\ImportInterface;
 use Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -144,7 +145,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
 
         //timezones
         $timezones = $input->getOption('timezones');
-        $timezonesLocal = $downloadDir . DIRECTORY_SEPARATOR . basename($timezones);
+        $timezonesLocal = $downloadDir . DIRECTORY_SEPARATOR . strtolower(basename($timezones));
 
         $this->downloadWithProgressBar(
             $timezones,
@@ -323,12 +324,11 @@ class ImportCommand extends Command implements ContainerAwareInterface
      * @param string $url
      * @param string $saveAs
      * @param OutputInterface $output
-     * @return \GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return PromiseInterface
      */
-    public function downloadWithProgressBar($url, $saveAs, OutputInterface $output)
+    public function downloadWithProgressBar(string $url, string $saveAs, OutputInterface $output): PromiseInterface
     {
-        if (file_exists($saveAs)) {
+        if (file_exists($saveAs) && is_file($saveAs)) {
             $output->writeln($saveAs . " exists in the cache.");
             $promise = new Promise();
             $promise->resolve("In cache!");
@@ -350,7 +350,6 @@ class ImportCommand extends Command implements ContainerAwareInterface
         )->then(function () use ($progress) {
             $progress->finish();
         });
-
     }
 
 
@@ -364,14 +363,14 @@ class ImportCommand extends Command implements ContainerAwareInterface
     public function download($url, $saveAs, callable $progress)
     {
         $client = new Client([]);
-
         $promise = $client->getAsync(
             new Uri($url),
             [
                 'progress' => function ($totalSize, $downloadedSize) use ($progress) {
                     $totalSize && is_callable($progress) && $progress($downloadedSize / $totalSize);
                 },
-                'save_to' => $saveAs
+                'sink' => $saveAs,
+                'save_to' => $saveAs, // support guzzle 6
             ]
         );
 

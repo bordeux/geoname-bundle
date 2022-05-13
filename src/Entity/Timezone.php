@@ -20,7 +20,7 @@ class Timezone implements Stringable
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected int $id;
+    protected ?int $id = null;
 
 
     /**

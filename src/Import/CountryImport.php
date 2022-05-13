@@ -4,6 +4,7 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Country;
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -64,7 +65,7 @@ class CountryImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $countryRepo = $this->em->getRepository("BordeuxGeoNameBundle:Country");
+        $countryRepo = $this->em->getRepository(Country::class);
 
         $pos = 0;
 
@@ -127,7 +128,7 @@ class CountryImport implements ImportInterface
             $object->setPostalRegex($postalRegex ?: null);
             $object->setLanguages(explode(",", $languages) ?: null);
             $object->setGeoName(
-                $this->em->getRepository("BordeuxGeoNameBundle:GeoName")
+                $this->em->getRepository(GeoName::class)
                 ->find($geoNameId)
             );
 

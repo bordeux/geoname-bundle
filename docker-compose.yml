@@ -1,0 +1,30 @@
+version: '3'
+services:
+  database:
+    image: postgres:${POSTGRES_VERSION:-13}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
+      POSTGRES_USER: ${POSTGRES_USER:-symfony}
+    volumes:
+      - db-data:/var/lib/postgresql/data:rw
+
+  tests:
+    image: cimg/php:8.0
+    working_dir: /home/tests
+    entrypoint: "bash -xc"
+    command: "'composer install && composer tests'"
+    tty: true
+    stdin_open: true
+    environment:
+      DB_DRIVER: pdo_pgsql
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-app}
+      DB_USER: ${POSTGRES_USER:-symfony}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
+      DB_VERSION: ${POSTGRES_VERSION:-13}
+    volumes:
+      - ./:/home/tests:cached
+volumes:
+  db-data:

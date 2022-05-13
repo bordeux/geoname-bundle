@@ -2,9 +2,8 @@ parameters:
   env(DB_DRIVER): "pdo_pgsql"
   env(DB_HOST): "localhost"
   env(DB_PORT): 5432
-  env(DB_NAME): "omnimove"
-  env(DB_USER): "omnimove"
-  env(HOSTNAME): "default"
+  env(DB_NAME): "app"
+  env(DB_USER): "symfony"
   env(DB_PASSWORD): "default"
   env(DB_VERSION): 10
 

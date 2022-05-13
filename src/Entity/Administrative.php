@@ -8,17 +8,18 @@ use Doctrine\ORM\Mapping as ORM;
  * Administrative
  *
  * @ORM\Table(name="geo__administrative")
+ * @ORM\Entity()
  */
 class Administrative
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected int $id;
+    protected ?int $id = null;
 
     /**
      * @var string
@@ -52,7 +53,7 @@ class Administrative
     /**
      * @return int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

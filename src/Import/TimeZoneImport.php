@@ -64,7 +64,7 @@ class TimeZoneImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $timezoneRepository = $this->em->getRepository("BordeuxGeoNameBundle:Timezone");
+        $timezoneRepository = $this->em->getRepository(Timezone::class);
 
         $pos = -1;
 
