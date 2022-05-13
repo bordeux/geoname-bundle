@@ -21,6 +21,7 @@
 		"guzzlehttp/promises": ">=1.0"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest",
         "php-coveralls/php-coveralls": "^2.5.2",
         "phpunit/phpunit": "*",
         "doctrine/orm": "^2.5",

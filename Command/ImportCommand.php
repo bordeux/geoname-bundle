@@ -24,18 +24,15 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
  */
 class ImportCommand extends Command implements ContainerAwareInterface
 {
-
     use ContainerAwareTrait;
 
-    /**
-     *
-     */
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
 
     private function getContainer()
     {
         return $this->container;
     }
+
     /**
      * Configuration method
      */
@@ -98,7 +95,6 @@ class ImportCommand extends Command implements ContainerAwareInterface
                 'o',
                 InputOption::VALUE_OPTIONAL,
                 "Download dir",
-                null
             )
             ->addOption(
                 "skip-admin1",
@@ -139,11 +135,9 @@ class ImportCommand extends Command implements ContainerAwareInterface
         $downloadDir = $input->getOption('download-dir') ?: $this->getContainer()->getParameter("kernel.cache_dir") . DIRECTORY_SEPARATOR . 'bordeux/geoname';
 
 
-        !file_exists($downloadDir) && mkdir($downloadDir, 0700, true);
-
+        !file_exists($downloadDir) && !mkdir($downloadDir, 0700, true) && !is_dir($downloadDir);
 
         $downloadDir = realpath($downloadDir);
-
 
         //timezones
         $timezones = $input->getOption('timezones');
@@ -260,7 +254,6 @@ class ImportCommand extends Command implements ContainerAwareInterface
             "Importing Countries",
             $output
         )->wait();
-
 
 
         if (!$input->getOption("skip-hierarchy")) {

@@ -6,7 +6,6 @@
         <server name="KERNEL_CLASS" value="AppKernel" />
     </php>
 
-
     <testsuites>
         <testsuite name="GeoNameBundle for the Symfony Framework">
             <directory>./Tests</directory>

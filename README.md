@@ -4,7 +4,7 @@ Geonames Bundle
 
 # Introduction
 
-Provides access to the data exported by [GeoNames.org][1] into  [Symfony 2][2] and [Symfony 3][2]
+Provides access to the data exported by [GeoNames.org][1] into  [Symfony 4^][2]
 applications.
 
 

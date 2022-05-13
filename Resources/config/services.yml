@@ -1,33 +1,30 @@
 services:
-    bordeux.geoname.import.timezone:
-        class: Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+  Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport:
+    autowire: true
+    public: true
+    alias: bordeux.geoname.import.timezone
 
-    bordeux.geoname.import.administrative:
-        class: Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+  Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport:
+    autowire: true
+    public: true
+    alias: bordeux.geoname.import.administrative
 
-    bordeux.geoname.import.geoname:
-        class: Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+  Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport:
+    autowire: true
+    public: true
+    alias: bordeux.geoname.import.geoname
 
+  Bordeux\Bundle\GeoNameBundle\Import\CountryImport:
+    autowire: true
+    public: true
+    alias: bordeux.geoname.import.country
 
-    bordeux.geoname.import.country:
-        class: Bordeux\Bundle\GeoNameBundle\Import\CountryImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+  Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport:
+    autowire: true
+    public: true
+    alias: bordeux.geoname.import.hierarchy
 
-    bordeux.geoname.import.hierarchy:
-        class: Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
-
-
-    #auto register all commands
-    bordeux.geoname.command.import:
-        class: Bordeux\Bundle\GeoNameBundle\Command\ImportCommand
-        tags:
-              - { name: console.command }
+  Bordeux\Bundle\GeoNameBundle\Command\ImportCommand:
+    alias: bordeux.geoname.command.import
+    tags:
+      - { name: console.command }
