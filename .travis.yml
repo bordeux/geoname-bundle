@@ -8,26 +8,19 @@ cache:
     - $HOME/.composer/cache
 
 addons:
-  postgresql: "9.6"
+  postgresql: "14"
   
 services:
   - mysql
   - postgresql
   
 php:
-  - 7.0
-  - 7.1
-  - 7.2
-  - nightly
-  
+  - 8.0
+
 matrix:
   include:
-    - php: 5.6
-      env: SYMFONY_VERSION="2.8.*@dev"
-    - php: 5.6
-      env: SYMFONY_VERSION="3.0.*@dev"
-    - php: 7.1
-      env: SYMFONY_VERSION="3.4"
+    - php: 8.0
+      env: SYMFONY_VERSION="4.4"
 
 env:
   global:
@@ -44,7 +37,7 @@ env:
 before_install:
   - mysql -e "CREATE DATABASE $DATABASE_NAME ;"
   - sudo service postgresql stop
-  - sudo service postgresql start 9.6
+  - sudo service postgresql start 14
   - psql -c 'create database '"$DATABASE_NAME"';' -U postgres
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_PORT=5432; fi;
   - if [ "$DATABASE_DRIVER" == "pdo_pgsql" ]; then export DATABASE_USER="postgres"; fi;

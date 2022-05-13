@@ -21,75 +21,66 @@ class Hierarchy
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected int $id;
 
     /**
-     * @var GeoName
+     * @var GeoName|null
      *
      * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
      * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
-    protected $parent;
+    protected ?GeoName $parent;
 
     /**
-     * @var GeoName
+     * @var GeoName|null
      *
      * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
      * @ORM\JoinColumn(name="child_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
-    protected $child;
+    protected ?GeoName $child;
 
     /**
-     * Get id
-     *
-     * @return integer
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
 
     /**
-     *
-     * @return GeoName
+     * @return GeoName|null
      */
-    public function getParent()
+    public function getParent(): ?GeoName
     {
         return $this->parent;
     }
 
     /**
-     *
-     * @param GeoName $parent
-     * @return Hierarchy
+     * @param GeoName|null $parent
+     * @return $this
      */
-    public function setParent(GeoName $parent)
+    public function setParent(?GeoName $parent): self
     {
         $this->parent = $parent;
         return $this;
     }
 
     /**
-     *
-     * @return GeoName
+     * @return GeoName|null
      */
-    public function getChild()
+    public function getChild(): ?GeoName
     {
         return $this->child;
     }
 
     /**
-     *
-     * @param GeoName $child
-     * @return Hierarchy
+     * @param GeoName|null $child
+     * @return $this
      */
-    public function setChild(GeoName $child)
+    public function setChild(?GeoName $child): self
     {
         $this->child = $child;
         return $this;
     }
-
-
-
 }
 

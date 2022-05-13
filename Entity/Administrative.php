@@ -8,7 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
  * Administrative
  *
  * @ORM\Table(name="geo__administrative")
- * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\AdministrativeRepository")
  */
 class Administrative
 {
@@ -19,28 +18,28 @@ class Administrative
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @var string
      *
      * @ORM\Column(name="code", type="string", length=30, unique=true)
      */
-    protected $code;
+    protected string $code;
 
     /**
      * @var string
      *
      * @ORM\Column(name="name", type="string", length=200)
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var string
      *
      * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
      */
-    protected $asciiName;
+    protected ?string $asciiName;
 
     /**
      * @var GeoName
@@ -48,101 +47,86 @@ class Administrative
      * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
      * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
      */
-    protected $geoName;
-
+    protected ?GeoName $geoName;
 
     /**
-     * Get id
-     *
-     * @return string
+     * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @return string
      */
-    public function getCode()
+    public function getCode(): string
     {
         return $this->code;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $code
-     * @return Administrative
+     * @param $code
+     * @return $this
      */
-    public function setCode($code)
+    public function setCode($code): self
     {
         $this->code = $code;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $name
-     * @return Administrative
+     * @param $name
+     * @return $this
      */
-    public function setName($name)
+    public function setName($name): self
     {
         $this->name = $name;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
+     * @return string|null
      */
-    public function getAsciiName()
+    public function getAsciiName(): ?string
     {
         return $this->asciiName;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $asciiName
-     * @return Administrative
+     * @param string|null $asciiName
+     * @return $this
      */
-    public function setAsciiName($asciiName)
+    public function setAsciiName(?string $asciiName): self
     {
         $this->asciiName = $asciiName;
         return $this;
     }
 
-
-
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return GeoName
+     * @return GeoName|null
      */
-    public function getGeoName()
+    public function getGeoName(): ?GeoName
     {
         return $this->geoName;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param GeoName $geoName
-     * @return Administrative
+     * @param GeoName|null $geoName
+     * @return $this
      */
-    public function setGeoName($geoName)
+    public function setGeoName(?GeoName $geoName): self
     {
         $this->geoName = $geoName;
         return $this;
     }
-
-
 }
 

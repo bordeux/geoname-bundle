@@ -336,19 +336,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
     {
         if (file_exists($saveAs)) {
             $output->writeln($saveAs . " exists in the cache.");
-
             $promise = new Promise();
-            $promise->then(
-            // $onFulfilled
-                function ($value) {
-                    echo 'The promise was fulfilled.';
-                },
-                // $onRejected
-                function ($reason) {
-                    echo 'The promise was rejected.';
-                }
-            );
-
             $promise->resolve("In cache!");
             return $promise;
         }

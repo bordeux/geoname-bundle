@@ -3,14 +3,15 @@
 namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 /**
  * Timezone
  *
  * @ORM\Table(name="geo__timezone")
- * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\TimezoneRepository")
+ * @ORM\Entity()
  */
-class Timezone
+class Timezone implements Stringable
 {
     /**
      * @var int
@@ -19,7 +20,7 @@ class Timezone
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected int $id;
 
 
     /**
@@ -27,151 +28,141 @@ class Timezone
      *
      * @ORM\Column(name="timezone", type="string", length=50, unique=true)
      */
-    protected $timezone;
+    protected string $timezone;
 
     /**
      * @var string
      *
      * @ORM\Column(name="country_code", type="string", length=2)
      */
-    protected $countryCode;
+    protected string $countryCode;
 
     /**
-     * @var string
+     * @var float
      *
      * @ORM\Column(name="gmt_offset", type="float", scale=1)
      */
-    protected $gmtOffset;
+    protected float $gmtOffset;
 
     /**
-     * @var string
+     * @var float
      *
      * @ORM\Column(name="dst_offset", type="float", scale=1)
      */
-    protected $dstOffset;
+    protected float $dstOffset;
 
     /**
-     * @var string
+     * @var float
      *
      * @ORM\Column(name="raw_offset", type="float", scale=1)
      */
-    protected $rawOffset;
-
+    protected float $rawOffset;
 
     /**
-     * Get id
-     *
-     * @return integer
+     * @return int
      */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @return string
      */
-    public function getTimezone()
+    public function getTimezone(): string
     {
         return $this->timezone;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @param string $timezone
-     * @return Timezone
+     * @return $this
      */
-    public function setTimezone($timezone)
+    public function setTimezone(string $timezone): self
     {
         $this->timezone = $timezone;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @return string
      */
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         return $this->countryCode;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @param string $countryCode
-     * @return Timezone
+     * @return $this
      */
-    public function setCountryCode($countryCode)
+    public function setCountryCode(string $countryCode): self
     {
         $this->countryCode = $countryCode;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
+     * @return float
      */
-    public function getGmtOffset()
+    public function getGmtOffset(): float
     {
         return $this->gmtOffset;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $gmtOffset
-     * @return Timezone
+     * @param float $gmtOffset
+     * @return $this
      */
-    public function setGmtOffset($gmtOffset)
+    public function setGmtOffset(float $gmtOffset): self
     {
         $this->gmtOffset = $gmtOffset;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
+     * @return float
      */
-    public function getDstOffset()
+    public function getDstOffset(): float
     {
         return $this->dstOffset;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $dstOffset
-     * @return Timezone
+     * @param float $dstOffset
+     * @return $this
      */
-    public function setDstOffset($dstOffset)
+    public function setDstOffset(float $dstOffset): self
     {
         $this->dstOffset = $dstOffset;
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
+     * @return float
      */
-    public function getRawOffset()
+    public function getRawOffset(): float
     {
         return $this->rawOffset;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $rawOffset
-     * @return Timezone
+     * @param float $rawOffset
+     * @return $this
      */
-    public function setRawOffset($rawOffset)
+    public function setRawOffset(float $rawOffset): self
     {
         $this->rawOffset = $rawOffset;
         return $this;
     }
 
-    public function __toString() {
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
         return $this->getTimezone();
     }
-
-
 }
 
