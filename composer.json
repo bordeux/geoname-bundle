@@ -63,6 +63,9 @@
             "@php -r \"file_exists('bin/phpcbf') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar', 'vendor/bin/phpcbf');\"",
             "@php ./vendor/bin/phpcbf"
         ],
+        "psalm:check": [
+            "@php ./vendor/bin/psalm"
+        ],
         "tests": [
             "@php ./vendor/bin/phpunit"
         ]
