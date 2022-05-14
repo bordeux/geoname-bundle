@@ -17,31 +17,20 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
- * Class VisitQueueCommand
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package TourRadar\Bundle\ApiBundle\Command\Queue
+ * Class ImportCommand
+ * @package Bordeux\Bundle\GeoNameBundle\Command
  */
-class ImportCommand extends Command implements ContainerAwareInterface
+class ImportCommand extends Command
 {
-    use ContainerAwareTrait;
-
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
 
-    private function getContainer()
-    {
-        return $this->container;
-    }
-
     /**
-     * Configuration method
+     *
      */
     protected function configure()
     {
-
         $this
             ->setName('bordeux:geoname:import')
             ->addOption(
@@ -94,38 +83,17 @@ class ImportCommand extends Command implements ContainerAwareInterface
                 'http://download.geonames.org/export/dump/countryInfo.txt'
             )
             ->addOption(
+                'alternate-names',
+                'an',
+                InputOption::VALUE_OPTIONAL,
+                "Alternate names file",
+                'http://download.geonames.org/export/dump/alternateNamesV2.zip'
+            )
+            ->addOption(
                 'download-dir',
                 'o',
                 InputOption::VALUE_OPTIONAL,
                 "Download dir",
-            )
-            ->addOption(
-                "skip-admin1",
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                "skip-admin2",
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                "skip-geoname",
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                "skip-hierarchy",
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
             )
             ->setDescription('Import GeoNames');
     }
@@ -133,7 +101,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

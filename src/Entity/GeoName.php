@@ -256,7 +256,7 @@ class GeoName
 
     /**
      * @param string|null $featureClass
-     * @return string
+     * @return $this
      */
     public function setFeatureClass(?string $featureClass): self
     {
