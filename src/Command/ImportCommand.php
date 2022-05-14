@@ -3,15 +3,18 @@
 namespace Bordeux\Bundle\GeoNameBundle\Command;
 
 use Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport;
+use Bordeux\Bundle\GeoNameBundle\Import\AlternateNameImport;
 use Bordeux\Bundle\GeoNameBundle\Import\CountryImport;
 use Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport;
 use Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport;
 use Bordeux\Bundle\GeoNameBundle\Import\ImportInterface;
 use Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport;
+use Cassandra\Time;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Uri;
+use PHPUnit\Framework\Constraint\Count;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,7 +27,47 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ImportCommand extends Command
 {
+    const NAME = 'bordeux:geoname:import';
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
+
+    protected string $cacheDir;
+    protected AdministrativeImport $administrativeImport;
+    protected AlternateNameImport $alternateNameImport;
+    protected CountryImport $countryImport;
+    protected GeoNameImport $geoNameImport;
+    protected HierarchyImport $hierarchyImport;
+    protected TimeZoneImport $timeZoneImport;
+
+    /**
+     * ImportCommand constructor.
+     * @param string $cacheDir
+     * @param AdministrativeImport $administrativeImport
+     * @param AlternateNameImport $alternateNameImport
+     * @param CountryImport $countryImport
+     * @param GeoNameImport $geoNameImport
+     * @param HierarchyImport $hierarchyImport
+     * @param TimeZoneImport $timeZoneImport
+     */
+    public function __construct(
+        string $cacheDir,
+        AdministrativeImport $administrativeImport,
+        AlternateNameImport $alternateNameImport,
+        CountryImport $countryImport,
+        GeoNameImport $geoNameImport,
+        HierarchyImport $hierarchyImport,
+        TimeZoneImport $timeZoneImport
+    )
+    {
+        parent::__construct(static::NAME);
+        $this->cacheDir = $cacheDir;
+        $this->administrativeImport = $administrativeImport;
+        $this->alternateNameImport = $alternateNameImport;
+        $this->countryImport = $countryImport;
+        $this->geoNameImport = $geoNameImport;
+        $this->hierarchyImport = $hierarchyImport;
+        $this->timeZoneImport = $timeZoneImport;
+    }
+
 
     /**
      *
@@ -105,13 +148,7 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
-        $downloadDir = $input->getOption('download-dir') ?: $this->getContainer()->getParameter("kernel.cache_dir") . DIRECTORY_SEPARATOR . 'bordeux/geoname';
-
-
-        !file_exists($downloadDir) && !mkdir($downloadDir, 0700, true) && !is_dir($downloadDir);
-
-        $downloadDir = realpath($downloadDir);
+        $downloadDir = $this->getDownloadDir($input);
 
         //timezones
         $timezones = $input->getOption('timezones');
@@ -140,7 +177,7 @@ class ImportCommand extends Command
         $output->writeln('');
 
         $this->importWithProgressBar(
-            $this->getContainer()->get(TimeZoneImport::class),
+            $this->timeZoneImport,
             $timezonesLocal,
             "Importing timezones",
             $output
@@ -161,7 +198,7 @@ class ImportCommand extends Command
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get(AdministrativeImport::class),
+                $this->administrativeImport,
                 $admin1Local,
                 "Importing administrative 1",
                 $output
@@ -184,7 +221,7 @@ class ImportCommand extends Command
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get(AdministrativeImport::class),
+                $this->administrativeImport,
                 $admin2Local,
                 "Importing administrative 2",
                 $output
@@ -208,7 +245,7 @@ class ImportCommand extends Command
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get(GeoNameImport::class),
+                $this->geoNameImport,
                 $archiveLocal,
                 "Importing GeoNames",
                 $output,
@@ -221,7 +258,7 @@ class ImportCommand extends Command
 
         //countries import
         $this->importWithProgressBar(
-            $this->getContainer()->get(CountryImport::class),
+            $this->countryImport,
             $countryInfoLocal,
             "Importing Countries",
             $output
@@ -241,7 +278,7 @@ class ImportCommand extends Command
             $output->writeln('');
 
             $this->importWithProgressBar(
-                $this->getContainer()->get(HierarchyImport::class),
+                $this->hierarchyImport,
                 $archiveLocal,
                 "Importing Hierarchy",
                 $output,
@@ -346,5 +383,16 @@ class ImportCommand extends Command
         );
 
         return $promise;
+    }
+
+    /**
+     * @param InputInterface $input
+     * @return string
+     */
+    protected function getDownloadDir(InputInterface $input): string
+    {
+        $downloadDir = $input->getOption('download-dir') ?: $this->cacheDir . DIRECTORY_SEPARATOR . 'bordeux/geoname';
+        !file_exists($downloadDir) && !mkdir($downloadDir, 0700, true) && !is_dir($downloadDir);
+        return realpath($downloadDir);
     }
 }

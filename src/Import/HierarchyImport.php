@@ -10,60 +10,40 @@ use GuzzleHttp\Promise\Promise;
 use SplFileObject;
 
 /**
- * Class GeoNameImport
- * @author Chris Bednarczyk <chris@tourradar.com>
+ * Class HierarchyImport
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
 class HierarchyImport extends GeoNameImport
 {
     /**
-     * @param $filePath
+     * @param string $filePath
      * @param callable|null $progress
      * @return bool
      * @throws \Doctrine\DBAL\Exception
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData(string $filePath, ?callable $progress = null): bool
     {
 
         $avrOneLineSize = 29.4;
-        $batchSize = 10000;
-
-        if ($batchSize > 1) { //temporarly
-            return true;
-        }
         $connection = $this->em->getConnection();
-
         $fileInside = basename($filePath, ".zip") . '.txt';
-        $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int)filesize($filePath) / $avrOneLineSize;
-        $geoNameTableName = $this->em
-            ->getClassMetadata(GeoName::class)
-            ->getTableName();
+        $filePath = "zip://{$filePath}#{$fileInside}";
+        $tsvFile = $this->readTSV($filePath);
+        $max = (int)$tsvFile->getSize() / $avrOneLineSize;
+        $tableName = $this->getTableName(HierarchyImport::class);
 
-        $dbType = $connection->getDatabasePlatform()->getName();
-
-        $connection->exec("START TRANSACTION");
+        $connection->beginTransaction();
 
         $pos = 0;
 
         $buffer = [];
 
         $queryBuilder = $connection->createQueryBuilder()
-            ->insert($geoNameTableName);
+            ->insert($tableName);
 
-        while (!feof($handler)) {
-            $csv = fgetcsv($handler, null, "\t");
-            if (!is_array($csv)) {
-                continue;
-            }
-
-            if (!is_numeric($csv[0] ?? null)) {
-                continue;
-            }
-
-            $row = array_map('trim', $csv);
-
-            if (!isset($row[0]) || !isset($row[1])) {
+        foreach ($tsvFile as $row) {
+            $row = array_map('trim', $row);
+            if (!is_numeric($row[0] ?? null)) {
                 continue;
             }
 
@@ -72,21 +52,18 @@ class HierarchyImport extends GeoNameImport
             ]);
 
 
-            $buffer[] = $this->insertToReplace($query, $dbType);
+            $buffer[] = $this->insertToReplace($query);
 
             $pos++;
 
-            if ($pos % $batchSize) {
+            if ($pos % static::BATCH_SIZE) {
                 $this->save($buffer);
                 $buffer = [];
                 is_callable($progress) && $progress(($pos) / $max);
             }
         }
-
-        !empty($buffer) &&  $this->save($buffer);
-
-        $connection->exec('COMMIT');
-
+        !empty($buffer) && $this->save($buffer);
+        $connection->commit();
         return true;
     }
 }

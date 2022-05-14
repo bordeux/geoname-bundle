@@ -5,87 +5,41 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
 
 /**
  * Class GeoNameImport
- * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class GeoNameImport implements ImportInterface
+class GeoNameImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $em;
-
-    /**
-     * GeoNameImport constructor.
-     * @param EntityManagerInterface $em
-     */
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
-    }
-
+    const BATCH_SIZE = 10000;
 
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
-    }
-
-    /**
-     * @param $filePath
-     * @param callable|null $progress
      * @return bool
      * @throws \Doctrine\DBAL\Exception
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData(string $filePath, ?callable $progress = null): bool
     {
 
         $avrOneLineSize = 29.4;
-        $batchSize = 10000;
-
         $connection = $this->em->getConnection();
-
         $fileInside = basename($filePath, ".zip") . '.txt';
-        $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int) (filesize($filePath) / $avrOneLineSize);
+        $filePath = "zip://{$filePath}#{$fileInside}";
 
-        $fieldsNames = $this->getFieldNames();
+        $tsvFile = $this->readTSV($filePath);
+        $max = (int)($tsvFile->getSize() / $avrOneLineSize);
 
-        $geoNameTableName = $this->em
-            ->getClassMetadata(GeoName::class)
-            ->getTableName();
+        $fieldsNames = $this->getFieldNames(GeoName::class);
+        $geoNameTableName = $this->getTableName(GeoName::class);
+        $timezoneTableName = $this->getTableName(Timezone::class);
+        $administrativeTableName = $this->getTableName(Administrative::class);
 
-        $timezoneTableName = $this->em
-            ->getClassMetadata(Timezone::class)
-            ->getTableName();
-
-        $administrativeTableName = $this->em
-            ->getClassMetadata(Administrative::class)
-            ->getTableName();
-
-
-        $dbType = $connection->getDatabasePlatform()->getName();
-
-        $connection->executeStatement("START TRANSACTION");
+        $connection->beginTransaction();
 
         $pos = 0;
 
@@ -94,12 +48,8 @@ class GeoNameImport implements ImportInterface
         $queryBuilder = $connection->createQueryBuilder()
             ->insert($geoNameTableName);
 
-        while (!feof($handler)) {
-            $csv = fgetcsv($handler, null, "\t");
-            if (!is_array($csv)) {
-                continue;
-            }
-            if (!isset($csv[0]) || !is_numeric($csv[0])) {
+        foreach ($tsvFile as $csv) {
+            if (!is_numeric($csv[0] ?? null)) {
                 continue;
             }
 
@@ -125,44 +75,37 @@ class GeoNameImport implements ImportInterface
                 $modificationDate
                 ) = array_map('trim', $csv);
 
-
             if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
                 continue;
             }
 
-
             $data = [
                 $fieldsNames['id'] => (int)$geoNameId, //must be as first!
-                $fieldsNames['name'] => $this->e($name),
-                $fieldsNames['asciiName'] => $this->e($asciiName),
-                $fieldsNames['latitude'] => $this->e($latitude),
-                $fieldsNames['longitude'] => $this->e($longitude),
-                $fieldsNames['featureClass'] => $this->e($featureClass),
-                $fieldsNames['featureCode'] => $this->e($featureCode),
-                $fieldsNames['countryCode'] => $this->e($countryCode),
-                $fieldsNames['cc2'] => $this->e($cc2),
-                $fieldsNames['population'] => $this->e($population),
-                $fieldsNames['elevation'] => $this->e($elevation),
-                $fieldsNames['dem'] => $this->e($dem),
-                $fieldsNames['modificationDate'] => $this->e($modificationDate),
-                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['name'] => $this->escape($name),
+                $fieldsNames['asciiName'] => $this->escape($asciiName),
+                $fieldsNames['latitude'] => $this->escape($latitude),
+                $fieldsNames['longitude'] => $this->escape($longitude),
+                $fieldsNames['featureClass'] => $this->escape($featureClass),
+                $fieldsNames['featureCode'] => $this->escape($featureCode),
+                $fieldsNames['countryCode'] => $this->escape($countryCode),
+                $fieldsNames['cc2'] => $this->escape($cc2),
+                $fieldsNames['population'] => $this->escape($population),
+                $fieldsNames['elevation'] => $this->escape($elevation),
+                $fieldsNames['dem'] => $this->escape($dem),
+                $fieldsNames['modificationDate'] => $this->escape($modificationDate),
+                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->escape($timezone) . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
+                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
             ];
 
 
-
-
             $query = $queryBuilder->values($data);
-
-
-            $buffer[] = $this->insertToReplace($query, $dbType);
-
+            $buffer[] = $this->insertToReplace($query);
             $pos++;
 
-            if ($pos % $batchSize) {
+            if ($pos % static::BATCH_SIZE) {
                 $this->save($buffer);
                 $buffer = [];
                 is_callable($progress) && $progress(($pos) / $max);
@@ -170,7 +113,7 @@ class GeoNameImport implements ImportInterface
         }
 
         !empty($buffer) && $this->save($buffer);
-        $connection->executeStatement('COMMIT');
+        $connection->commit();
 
         return true;
     }
@@ -178,30 +121,28 @@ class GeoNameImport implements ImportInterface
 
     /**
      * @param QueryBuilder $insertSQL
-     * @return mixed
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @return string
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function insertToReplace(QueryBuilder $insertSQL, $dbType)
+    protected function insertToReplace(QueryBuilder $insertSQL): string
     {
-        if ($dbType == "mysql") {
+        $platform = $this->em->getConnection()->getDatabasePlatform();
+        if ($platform instanceof MySQLPlatform) {
             $sql = $insertSQL->getSQL();
             return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
         }
 
-        if ($dbType == "postgresql") {
-            $vals = $insertSQL->getQueryPart("values");
+        if ($platform instanceof PostgreSQLPlatform) {
+            $values = $insertSQL->getQueryPart("values");
             $sql = $insertSQL->getSQL();
-            reset($vals);
-            $index = key($vals);
-            array_shift($vals);
-
+            reset($values);
+            $index = key($values);
+            array_shift($values);
             $parts = [];
-            foreach ($vals as $column => $val) {
+            foreach ($values as $column => $val) {
                 $parts[] = "{$column} = {$val}";
             }
-
             $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET " . implode(", ", $parts);
-
             return $sql;
         }
 
@@ -209,16 +150,16 @@ class GeoNameImport implements ImportInterface
     }
 
     /**
-     * @param $queries
-     * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @param string[] $queries
+     * @return $this
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function save($queries)
+    public function save(array $queries): self
     {
-        $queries = implode("; \n", $queries);
-        $this->em->getConnection()->exec($queries);
-
-        return true;
+        $this->em->getConnection()->executeStatement(
+            implode("; \n", $queries)
+        );
+        return $this;
     }
 
 
@@ -226,35 +167,18 @@ class GeoNameImport implements ImportInterface
      * @return string[]
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function getFieldNames()
+    protected function getFieldNames(string $className): array
     {
-        $metaData = $this->em->getClassMetadata(GeoName::class);
-
+        $metaData = $this->em->getClassMetadata($className);
         $result = [];
-
         foreach ($metaData->getFieldNames() as $name) {
             $result[$name] = $metaData->getColumnName($name);
         }
-
         foreach ($metaData->getAssociationNames() as $name) {
             if ($metaData->isSingleValuedAssociation($name)) {
                 $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
             }
         }
-
         return $result;
-    }
-
-    /**
-     * @param string $val
-     * @return string
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    protected function e($val)
-    {
-        if ($val === null || strlen($val) === 0) {
-            return 'NULL';
-        }
-        return $this->em->getConnection()->quote($val);
     }
 }

@@ -15,49 +15,14 @@ use SplFileObject;
  * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class AdministrativeImport implements ImportInterface
+class AdministrativeImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface|EntityManager
-     */
-    protected EntityManagerInterface $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
-     */
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
-    }
-
-
-    /**
-     * @param string $filePath
-     * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
-    }
-
     /**
      * @param string $filePath
      * @param callable|null $progress
      * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData(string $filePath, ?callable $progress = null): bool
     {
         $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);

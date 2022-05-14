@@ -12,62 +12,22 @@ use SplFileObject;
  * Class TimeZoneImport
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class TimeZoneImport implements ImportInterface
+class TimeZoneImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @param EntityManagerInterface $em
-     */
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
-    }
-
-
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
-    }
-
-    /**
-     * @param $filePath
-     * @param callable|null $progress
      * @return bool
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null): bool
     {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        $file->seek(PHP_INT_MAX);
-        $max = $file->key();
-        $file->seek(1); //skip header
-
+        $tsvFile = $this->readTSV($filePath);
+        $max = $tsvFile->getSize();
         $timezoneRepository = $this->em->getRepository(Timezone::class);
-
-        $pos = -1;
-
-        foreach ($file as $row) {
-            if ($pos == -1) {
-                $pos++;
+        $pos = 0;
+        foreach ($tsvFile as $row) {
+            $pos++;
+            if ($pos <= 1) {
                 continue;
             }
             $row = array_map('trim', $row);
@@ -86,7 +46,6 @@ class TimeZoneImport implements ImportInterface
             $object->setGmtOffset((float)$gmtOffset);
             $object->setDstOffset((float)$dstOffset);
             $object->setRawOffset((float)$rawOffset);
-
             !$object->getId() && $this->em->persist($object);
             is_callable($progress) && $progress(($pos++) / $max);
         }

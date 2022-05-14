@@ -3,7 +3,7 @@ on: [ push ]
 
 jobs:
   tests:
-    name: PHPUnit PHP ${{ matrix.php }} ${{ matrix.database }} (Symfony ${{ matrix.symfony }})
+    name: PHPUnit PHP ${{ matrix.php }} Postgres ${{ matrix.database }} (Symfony ${{ matrix.symfony }})
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -15,16 +15,15 @@ jobs:
           - '5.4.*'
           - '6.0.*'
         database:
-          - 'postgres:10'
-          - 'postgres:11'
-          - 'postgres:12'
-          - 'postgres:13'
-          - 'postgres:14'
+          - 11
+          - 12
+          - 13
+          - 14
       fail-fast: false
 
     services:
       postgres:
-        image: ${{ matrix.database }}
+        image: postgres:${{ matrix.database }}
         env:
           POSTGRES_DB: app
           POSTGRES_PASSWORD: ChangeMe
@@ -81,4 +80,4 @@ jobs:
           DB_NAME: app
           DB_USER: symfony
           DB_PASSWORD: ChangeMe
-          DB_VERSION: 13
+          DB_VERSION: ${{  matrix.database }}
