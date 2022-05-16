@@ -1,11 +1,12 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
+![Build Status](https://github.com/bordeux/geoname-bundle/actions/workflows/ci.yml/badge.svg)
+[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
 
 # Introduction
 
-Provides access to the data exported by [GeoNames.org][1] into  [Symfony 2][2] and [Symfony 3][2]
-applications.
+Provides access to the data exported by [GeoNames.org][1] into  [Symfony 4, 5, 6][2]
+applications. Starting version 3.0 this library supporting only PostgreSQL database.
 
 
 ## What is [geonames.org][1]
@@ -13,7 +14,7 @@ applications.
 From the geonames.org website:
 
 > The GeoNames geographical database covers all countries and contains over
-> eight million placenames that are available for download free of charge.
+> eight million place names that are available for download free of charge.
 
 
 ## When to use this bundle
@@ -29,7 +30,7 @@ covered worldwide.
 
     * Countries
     * Timezones
-    * States & Provences
+    * States & Provinces
     * Cities, Towns, Suburbs, Villages etc.
 
 - Provides the following data store implementations:
@@ -71,7 +72,7 @@ Execute the migrations using the supplied migration configuration
 almost 350 MB data from [geonames.org][1].
 
 The following commands can be used in sequence to load all supported data from
-the [geonames.org][1] export (http://download.geonames.org/export/dump)
+the [geonames.org][1] export (https://download.geonames.org/export/dump)
 
 ### Import data
 
@@ -81,40 +82,9 @@ Loads a list of all data from [geonames.org][1]
     php bin/console bordeux:geoname:import  --env=prod
 ```
 
-### Options
+### How to run tests?
 
+Just run: ``dokcer-compose -f docker-compose.tests.yml up``
 
-```
-Usage:
-  bordeux:geoname:import [options]
-
-Options:
-  -a, --archive[=ARCHIVE]                   Archive to GeoNames [default: "http://download.geonames.org/export/dump/allCount
-ries.zip"]
-  -t, --timezones[=TIMEZONES]               Timezones file [default: "http://download.geonames.org/export/dump/timeZones.txt
-"]
-  -o, --download-dir[=DOWNLOAD-DIR]         Download dir
-  -h, --help                                Display this help message
-  -q, --quiet                               Do not output any message
-  -V, --version                             Display this application version
-      --ansi                                Force ANSI output
-      --no-ansi                             Disable ANSI output
-  -n, --no-interaction                      Do not ask any interactive question
-  -e, --env=ENV                             The environment name [default: "dev"]
-      --no-debug                            Switches off debug mode
-  -a1, --admin1-codes[=ADMIN1-CODES]        Admin 1 Codes file [default: "http://download.geonames.org/export/dump/admin1Cod
-esASCII.txt"]
-  -a2, --admin2-codes[=ADMIN2-CODES]        Admin 2 Codes file [default: "http://download.geonames.org/export/dump/admin2Cod
-es.txt"]
-  -lc, --languages-codes[=LANGUAGES-CODES]  Admin 2 Codes file [default: "http://download.geonames.org/export/dump/iso-langu
-agecodes.txt"]
-  -v|vv|vvv, --verbose                      Increase the verbosity of messages: 1 for normal output, 2 for more verbose outp
-ut and 3 for debug
-
-Help:
-  Import GeoNames
-
-```
-
- [1]: http://geonames.org
- [2]: http://symfony.com
+ [1]: https://geonames.org
+ [2]: https://symfony.com

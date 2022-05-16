@@ -1,0 +1,82 @@
+name: Tests
+on: [ push ]
+
+jobs:
+  tests:
+    name: PHPUnit PHP ${{ matrix.php }} Postgres ${{ matrix.database }} (Symfony ${{ matrix.symfony }})
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        php:
+          - '8.0'
+          - '8.1'
+        symfony:
+          - '4.4.*'
+          - '5.4.*'
+          - '6.0.*'
+        database:
+          - 12
+          - 13
+          - 14
+      fail-fast: false
+
+    services:
+      postgres:
+        image: postgres:${{ matrix.database }}
+        env:
+          POSTGRES_DB: app
+          POSTGRES_PASSWORD: ChangeMe
+          POSTGRES_USER: symfony
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pcov
+          tools: flex
+
+      - name: Configure Symfony
+        run: composer config extra.symfony.require "${{ matrix.symfony }}"
+
+      - name: Prefer unstable Composer dependencies if Symfony 6.1
+        if: matrix.symfony == '6.1.*'
+        run: composer config prefer-stable false
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ matrix.php }}-composer-
+
+      - name: Update project dependencies
+        run: composer update --no-progress --ansi --prefer-stable
+
+      - name: Validate composer
+        run: composer validate --strict --no-check-lock
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+        env:
+          DB_DRIVER: pdo_pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: app
+          DB_USER: symfony
+          DB_PASSWORD: ChangeMe
+          DB_VERSION: ${{  matrix.database }}

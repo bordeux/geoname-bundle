@@ -1,0 +1,27 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+
+  Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport:
+  Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport:
+  Bordeux\Bundle\GeoNameBundle\Import\Administrative2Import:
+  Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport:
+  Bordeux\Bundle\GeoNameBundle\Import\CountryImport:
+#  Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport:
+  Bordeux\Bundle\GeoNameBundle\Import\AlternateNameImport:
+
+  Bordeux\Bundle\GeoNameBundle\Command\ImportCommand:
+    tags:
+      - { name: 'console.command', command: 'bordeux:geoname:import' }
+    arguments:
+      $importers:
+        - '@Bordeux\Bundle\GeoNameBundle\Import\TimeZoneImport'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\AdministrativeImport'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\Administrative2Import'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\Administrative2Import'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\GeoNameImport'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\CountryImport'
+#        - '@Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\AlternateNameImport'

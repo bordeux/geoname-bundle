@@ -1,37 +1,73 @@
 {
     "name": "bordeux/geoname-bundle",
-    "type": "symfony-bundle",
     "description": "Symfony GeoNameBundle",
-    "keywords": ["geoname", "geonameid"],
-    "homepage": "https://github.com/bordeux/geoname-bundle",
     "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "geoname",
+        "geonameid"
+    ],
     "authors": [
         {
             "name": "Krzysztof Bednarczyk",
             "email": "krzysztof@bednarczyk.me"
         }
     ],
+    "homepage": "https://github.com/bordeux/geoname-bundle",
     "require": {
-        "php": ">=5.5.9",
-        "symfony/framework-bundle": "~2.7|~3.0|~4.0|^5",
-        "symfony/console": "~2.7|~3.0|~4.0|^5",
-        "symfony/dependency-injection": "~2.7|~3.0|~4.0|^5",
-        "doctrine/doctrine-bundle": ">=1.6",
-        "guzzlehttp/guzzle": "~6.0",
-		"guzzlehttp/promises": ">=1.0"
+        "php": ">=8.0",
+        "ext-zip": "*",
+        "doctrine/doctrine-bundle": "^2.0",
+        "guzzlehttp/guzzle": "^6.0 || ^7.0",
+        "symfony/console": "^4.0 || ^5.0 || ^6.0"
     },
     "require-dev": {
-        "satooshi/php-coveralls": "^1.0",
-        "phpunit/phpunit": "*",
         "doctrine/orm": "^2.5",
-        "symfony/yaml": "~2.7|~3.0|^4|^5"
+        "ergebnis/composer-normalize": "^2.26",
+        "orklah/psalm-insane-comparison": "^2.0",
+        "php-standard-library/psalm-plugin": "^1.1",
+        "phpunit/phpunit": "^9.5.20",
+        "psalm/plugin-symfony": "^3.1",
+        "roave/security-advisories": "dev-latest",
+        "symfony/framework-bundle": "^4.0 || ^5.0 || ^6.0",
+        "symfony/yaml": "^4.0 || ^5.0 || ^6.0",
+        "vimeo/psalm": "^4.23",
+        "weirdan/doctrine-psalm-plugin": "^2.3"
     },
     "autoload": {
-        "psr-4": { "Bordeux\\Bundle\\GeoNameBundle\\": "" }
+        "psr-4": {
+            "Bordeux\\Bundle\\GeoNameBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bordeux\\Bundle\\GeoNameBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
+        }
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.0.x-dev"
+            "dev-master": "3.0.x-dev"
         }
+    },
+    "scripts": {
+        "cs:check": [
+            "@php -r \"file_exists('bin/phpcs') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar', 'vendor/bin/phpcs');\"",
+            "@php ./vendor/bin/phpcs"
+        ],
+        "cs:fix": [
+            "@php -r \"file_exists('bin/phpcbf') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar', 'vendor/bin/phpcbf');\"",
+            "@php ./vendor/bin/phpcbf"
+        ],
+        "psalm:check": [
+            "@php ./vendor/bin/psalm"
+        ],
+        "tests": [
+            "@php ./vendor/bin/phpunit"
+        ]
     }
 }
