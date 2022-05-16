@@ -3,6 +3,8 @@
 namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -171,6 +173,14 @@ class GeoName
      * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\AlternateName", mappedBy="geoName")
      */
     protected $alternateNames = [];
+
+    /**
+     * GeoName constructor.
+     */
+    public function __construct()
+    {
+        $this->alternateNames = new ArrayCollection();
+    }
 
 
     /**
@@ -497,9 +507,9 @@ class GeoName
 
     /**
      *
-     * @return AlternateName[]
+     * @return AlternateName[]|null
      */
-    public function getAlternateNames(): array
+    public function getAlternateNames(): ?Collection
     {
         return $this->alternateNames;
     }

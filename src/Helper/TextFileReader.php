@@ -120,6 +120,7 @@ class TextFileReader
         if (count($buffer)) {
             yield $buffer;
         }
+
         $progress && $progress($readBytes / $fileSize);
         fclose($handle);
     }

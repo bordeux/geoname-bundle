@@ -60,10 +60,14 @@ class CountryImport extends AbstractImport
         foreach ($reader->process(static::BULK_SIZE) as $bulk) {
             foreach ($bulk as $item) {
                 $id = $item['geoname_id'];
-                $object = $countryRepo->find($id) ?: new Country($id);
+                $object = $countryRepo->find($id);
+                if (!$object) {
+                    $object = new Country($id);
+                    $this->em->persist($object);
+                }
                 $object->setIso($item['iso']);
                 $object->setIso3($item['iso3']);
-                $object->setIsoNumeric((int) $item['iso_numeric']);
+                $object->setIsoNumeric((int)$item['iso_numeric']);
                 $object->setFips($item['fips']);
                 $object->setName($item['name']);
                 $object->setCapital($item['capital']);
@@ -75,7 +79,7 @@ class CountryImport extends AbstractImport
                 $phone = explode(" and ", $item['phone'] ?? '');
                 $phone = reset($phone);
                 $phone = preg_replace('/\D/', '', $phone);
-                $object->setPhonePrefix(((int) $phone) ?: null);
+                $object->setPhonePrefix(((int)$phone) ?: null);
                 $object->setPostalFormat($item['postal_format'] ?: null);
                 $object->setPostalRegex($item['postal_regex'] ?: null);
                 $object->setLanguages(explode(",", $item['languages']) ?: null);

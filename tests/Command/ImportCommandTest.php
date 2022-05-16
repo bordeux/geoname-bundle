@@ -93,6 +93,7 @@ class ImportCommandTest extends KernelTestCase
         $country = $this->em->getRepository(Country::class)
             ->find(798544);
 
+        self::assertInstanceOf(Country::class, $country);
         self::assertSame("Poland", $country->getName());
         self::assertSame("PL", $country->getFips());
         self::assertSame("POL", $country->getIso3());
@@ -122,9 +123,9 @@ class ImportCommandTest extends KernelTestCase
         self::assertSame(372, $timezone->getId());
         self::assertSame("Europe/Warsaw", $timezone->getTimezone());
         self::assertSame("PL", $timezone->getCountryCode());
-        self::assertSame(1, $timezone->getGmtOffset());
-        self::assertSame(2, $timezone->getDstOffset());
-        self::assertSame(1, $timezone->getRawOffset());
+        self::assertSame(1.0, $timezone->getGmtOffset());
+        self::assertSame(2.0, $timezone->getDstOffset());
+        self::assertSame(1.0, $timezone->getRawOffset());
 
         $alternateNames = $geoName->getAlternateNames();
         /** @var AlternateName<string> $map */
