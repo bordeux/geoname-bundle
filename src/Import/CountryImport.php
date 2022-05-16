@@ -4,7 +4,8 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Country;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
-use SplFileObject;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
 
 /**
  * Class CountryImport
@@ -12,6 +13,34 @@ use SplFileObject;
  */
 class CountryImport extends AbstractImport
 {
+    protected const BULK_SIZE = 1000;
+
+    /**
+     * @return Header[]
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            new Header(0, 'iso'),
+            new Header(1, 'iso3'),
+            new Header(2, 'iso_numeric'),
+            new Header(3, 'fips'),
+            new Header(4, 'name'),
+            new Header(5, 'capital'),
+            new Header(6, 'area', Header::TYPE_INT),
+            new Header(7, 'population', Header::TYPE_INT),
+            new Header(8, 'continent'),
+            new Header(9, 'tld'),
+            new Header(10, 'currency_code'),
+            new Header(11, 'currency_name'),
+            new Header(12, 'phone'),
+            new Header(13, 'postal_format'),
+            new Header(14, 'postal_regex'),
+            new Header(15, 'languages'),
+            new Header(16, 'geoname_id', Header::TYPE_INT)
+        ];
+    }
+
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -20,97 +49,45 @@ class CountryImport extends AbstractImport
      */
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        $file->seek(PHP_INT_MAX);
-        $max = $file->key();
-        $file->seek(1); //skip header
+
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders());
 
         $countryRepo = $this->em->getRepository(Country::class);
+        $connection = $this->em->getConnection();
 
-        $pos = 0;
-
-        $this->em
-            ->getConnection()
-            ->beginTransaction();
-
-        foreach ($file as $row) {
-            $row = array_map('trim', $row);
-
-            if (count($row) < 17) {
-                continue;
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            foreach ($bulk as $item) {
+                $id = $item['geoname_id'];
+                $object = $countryRepo->find($id) ?: new Country($id);
+                $object->setIso($item['iso']);
+                $object->setIso3($item['iso3']);
+                $object->setIsoNumeric((int) $item['iso_numeric']);
+                $object->setFips($item['fips']);
+                $object->setName($item['name']);
+                $object->setCapital($item['capital']);
+                $object->setArea($item['area']);
+                $object->setPopulation($item['population']);
+                $object->setTld($item['tld']);
+                $object->setCurrency($item['currency_code']);
+                $object->setCurrencyName($item['currency_name']);
+                $phone = explode(" and ", $item['phone'] ?? '');
+                $phone = reset($phone);
+                $phone = preg_replace('/\D/', '', $phone);
+                $object->setPhonePrefix(((int) $phone) ?: null);
+                $object->setPostalFormat($item['postal_format'] ?: null);
+                $object->setPostalRegex($item['postal_regex'] ?: null);
+                $object->setLanguages(explode(",", $item['languages']) ?: null);
+                $object->setGeoName(
+                    $this->em->getRepository(GeoName::class)
+                        ->find($id)
+                );
             }
-
-            list(
-                $iso,
-                $iso3,
-                $isoNumeric,
-                $fips,
-                $name,
-                $capital,
-                $area,
-                $population,
-                $continent,
-                $tld,
-                $currency,
-                $currencyName,
-                $phone,
-                $postalFormat,
-                $postalRegex,
-                $languages,
-                $geoNameId,
-                $neighbours
-                ) = $row;
-
-
-            if (!is_numeric($geoNameId)) {
-                continue;
-            }
-
-
-            $object = $countryRepo->find($geoNameId) ?: new Country($geoNameId);
-            $object->setId($geoNameId);
-            $object->setIso($iso);
-            $object->setIso3($iso3);
-            $object->setIsoNumeric($isoNumeric);
-            $object->setFips($fips ?: null);
-            $object->setName($name ?: null);
-            $object->setCapital($capital ?: null);
-            $object->setArea($area ?: 0);
-            $object->setPopulation($population ?: 0);
-            $object->setTld($tld ?: null);
-            $object->setCurrency($currency ?: null);
-            $object->setCurrencyName($currencyName ?: null);
-            $phone = explode(" and ", $phone ?: "");
-            $phone = reset($phone);
-            $phone = preg_replace('/\D/', '', $phone);
-            $object->setPhonePrefix($phone ?: null);
-            $object->setPostalFormat($postalFormat ?: null);
-            $object->setPostalRegex($postalRegex ?: null);
-            $object->setLanguages(explode(",", $languages) ?: null);
-            $object->setGeoName(
-                $this->em->getRepository(GeoName::class)
-                    ->find($geoNameId)
-            );
-
-
-            $this->em->persist($object);
-
-            is_callable($progress) && $progress(($pos++) / $max);
-
-            if ($pos % 100) {
-                $this->em->flush();
-                $this->em->clear();
-            }
+            $this->em->flush();
+            $this->em->clear();
         }
-
-        $this->em->flush();
-        $this->em->clear();
-
-        $this->em
-            ->commit();
-
+        $connection->commit();
 
         $geoNameTableName = $this->em
             ->getClassMetadata(GeoName::class)
@@ -138,7 +115,6 @@ UpdateSelect;
         $this->em
             ->getConnection()
             ->executeStatement($sql);
-
         return true;
     }
 

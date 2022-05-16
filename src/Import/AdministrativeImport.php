@@ -13,6 +13,19 @@ class AdministrativeImport extends AbstractImport
 {
     protected const BULK_SIZE = 10000;
 
+
+    /**
+     * @return TextFileReader\Header[]
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            new TextFileReader\Header(0, 'code'),
+            new TextFileReader\Header(1, 'name'),
+            new TextFileReader\Header(2, 'asci_name')
+        ];
+    }
+
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -21,11 +34,7 @@ class AdministrativeImport extends AbstractImport
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
         $reader = new TextFileReader($filePath, $progress);
-        $reader->addHeaders([
-            new TextFileReader\Header(0, 'code'),
-            new TextFileReader\Header(1, 'name'),
-            new TextFileReader\Header(2, 'asci_name')
-        ]);
+        $reader->addHeaders($this->getHeaders());
 
         $connection = $this->em->getConnection();
         $administrative = $this->em->getRepository(Administrative::class);

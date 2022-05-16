@@ -34,4 +34,10 @@ interface ImportInterface
      * @return string
      */
     public function getDefaultValue(): string;
+
+
+    /**
+     * @return string|null
+     */
+    public function getTestValue(): ?string;
 }

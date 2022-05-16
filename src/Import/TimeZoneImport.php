@@ -3,6 +3,8 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
 
 /**
  * Class TimeZoneImport
@@ -10,6 +12,22 @@ use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
  */
 class TimeZoneImport extends AbstractImport
 {
+    protected const BULK_SIZE = 1000;
+
+    /**
+     * @return Header[]
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            new Header(0, 'country_code'),
+            new Header(1, 'timezone'),
+            new Header(2, 'gmt_offset', Header::TYPE_FLOAT),
+            new Header(3, 'dst_offset', Header::TYPE_FLOAT),
+            new Header(4, 'raw_offset', Header::TYPE_FLOAT),
+        ];
+    }
+
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -17,38 +35,29 @@ class TimeZoneImport extends AbstractImport
      */
     protected function importData($filePath, callable $progress = null): bool
     {
-        $tsvFile = $this->readTSV($filePath);
-        $max = $tsvFile->getSize();
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders())
+            ->skipLines(1);
+
         $timezoneRepository = $this->em->getRepository(Timezone::class);
-        $pos = 0;
-        foreach ($tsvFile as $row) {
-            $pos++;
-            if ($pos <= 1) {
-                continue;
+        $connection = $this->em->getConnection();
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            foreach ($bulk as $item) {
+                $timezone = $item['timezone'];
+                $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
+                $object->setTimezone($timezone);
+                $object->setCountryCode($item['country_code']);
+                $object->setGmtOffset($item['gmt_offset']);
+                $object->setDstOffset($item['dst_offset']);
+                $object->setRawOffset($item['raw_offset']);
+                !$object->getId() && $this->em->persist($object);
             }
-            $row = array_map('trim', $row);
-            list(
-                $countryCode,
-                $timezone,
-                $gmtOffset,
-                $dstOffset,
-                $rawOffset
-                ) = $row;
 
-
-            $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
-            $object->setTimezone($timezone);
-            $object->setCountryCode($countryCode);
-            $object->setGmtOffset((float)$gmtOffset);
-            $object->setDstOffset((float)$dstOffset);
-            $object->setRawOffset((float)$rawOffset);
-            !$object->getId() && $this->em->persist($object);
-            is_callable($progress) && $progress(($pos++) / $max);
+            $this->em->flush();
+            $this->em->clear();
         }
-
-        $this->em->flush();
-        $this->em->clear();
-
+        $connection->commit();
         return true;
     }
 

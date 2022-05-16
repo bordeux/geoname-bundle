@@ -31,8 +31,16 @@ class ImportCommand extends Command
     public function __construct(
         array $importers
     ) {
-        parent::__construct(static::NAME);
         $this->importers = $importers;
+        parent::__construct(static::NAME);
+    }
+
+    /**
+     * @return ImportInterface[]
+     */
+    public function getImporters(): array
+    {
+        return $this->importers;
     }
 
     /**
@@ -82,13 +90,16 @@ class ImportCommand extends Command
             $value = $input->getOption($importer->getOptionName());
             $skip = $input->getOption("skip-" . $importer->getOptionName());
             if (empty($value) || $skip) {
+                $output->writeln("Skipping importing " . $importer->getName());
                 continue;
             }
 
+            $output->writeln("Start importing " . $importer->getName());
             $progress = $this->getProgressBar($output, "Downloading data for " . $importer->getName());
             $downloader = new Downloader($value, $downloadDir);
             $file = $downloader->start(fn($value) => $progress->setProgress($value));
             $progress->finish();
+
 
             $progress = $this->getProgressBar($output, "Importing data: " . $importer->getName());
             $importer->import(
@@ -97,6 +108,7 @@ class ImportCommand extends Command
             )->wait();
             $progress->finish();
             $downloader = null;
+            $output->writeln("Finished importing " . $importer->getName());
         }
 
         return 0;
@@ -114,6 +126,7 @@ class ImportCommand extends Command
         $progress->setMessage($title);
         $progress->setRedrawFrequency(1);
         $progress->start();
+        $progress->display();
         return $progress;
     }
 }

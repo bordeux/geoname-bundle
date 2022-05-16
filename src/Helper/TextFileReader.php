@@ -7,7 +7,7 @@ use Generator;
 use RuntimeException;
 
 /**
- * Class Downloader
+ * Class TextFileReader
  * @package Bordeux\Bundle\GeoNameBundle\Helper
  */
 class TextFileReader
@@ -39,6 +39,12 @@ class TextFileReader
     public function addHeader(Header $header): self
     {
         $this->headers[] = $header;
+        return $this;
+    }
+
+    public function skipLines(int $lines): self
+    {
+        $this->skipLines = $lines;
         return $this;
     }
 
@@ -79,14 +85,56 @@ class TextFileReader
         }
         $readBytes = 0;
         $lineNumber = 0;
+        $progress = $this->progress;
+
+        $buffer = [];
         while (!feof($handle)) {
             $lineNumber++;
-            $line = fread($handle, 8192);
-            $readBytes += strlen($line);
+            $lineRaw = fgets($handle, 8192);
+            $readBytes += strlen($lineRaw);
+            $line = trim($lineRaw);
+
+            if (strlen($line) === 0) {
+                continue;
+            }
+
+            if (strlen($line) === 0 || $line[0] === '#') {
+                continue;
+            }
             if ($lineNumber <= $this->skipLines) {
                 continue;
             }
+
+            $item = $this->convertToItem($line, $lineNumber);
+            if ($item !== null) {
+                $buffer[] = $item;
+            }
+
+            if (count($buffer) >= $bulkSize) {
+                yield $buffer;
+                $buffer = [];
+                $progress && $progress($readBytes / $fileSize);
+            }
         }
+
+        if (count($buffer)) {
+            yield $buffer;
+        }
+        $progress && $progress($readBytes / $fileSize);
         fclose($handle);
+    }
+
+    /**
+     * @param string $line
+     * @return mixed
+     */
+    protected function convertToItem(string $line, int $lineNumber): mixed
+    {
+        $tsv = explode("\t", $line);
+        $result = [];
+        foreach ($this->headers as $header) {
+            $result[$header->getName()] = $header->getValue($tsv, $lineNumber);
+        }
+        return $result;
     }
 }

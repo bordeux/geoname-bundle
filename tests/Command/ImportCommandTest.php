@@ -48,15 +48,23 @@ class ImportCommandTest extends KernelTestCase
      */
     public function testDownload(): void
     {
+        /** @var ImportCommand $command */
         $command = $this->application->find('bordeux:geoname:import');
         $command->setApplication($this->application);
 
-
-        $input = new ArrayInput([
+        $inputArray = [
             'command' => $command->getName(),
-            '--geonames' => 'https://download.geonames.org/export/dump/AX.zip'
-        ]);
+        ];
+        foreach ($command->getImporters() as $importer) {
+            $value = $importer->getTestValue();
+            if (null === $value) {
+                $inputArray['--skip-' . $importer->getOptionName()] = 1;
+            } else {
+                $inputArray['--' . $importer->getOptionName()] = $importer->getTestValue();
+            }
+        }
 
+        $input = new ArrayInput($inputArray);
         $result = $command->run($input, $this->output);
 
         $this->assertEquals($result, 0);
@@ -69,7 +77,6 @@ class ImportCommandTest extends KernelTestCase
         $ytterskaer = $geoNameRepo->find(630694);
 
         $this->assertInstanceOf(GeoName::class, $ytterskaer);
-
         $this->assertEquals($ytterskaer->getName(), 'Ytterskär');
         $this->assertEquals($ytterskaer->getAsciiName(), 'Ytterskaer');
         $this->assertEquals($ytterskaer->getCountryCode(), 'AX');

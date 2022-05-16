@@ -2,10 +2,15 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
-use SplFileObject;
+use phpDocumentor\Reflection\Types\Boolean;
+use Throwable;
 
 /**
  * Class AbstractImport
@@ -55,18 +60,6 @@ abstract class AbstractImport implements ImportInterface
 
 
     /**
-     * @param string $filePath
-     * @return SplFileObject
-     */
-    protected function readTSV(string $filePath): SplFileObject
-    {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        return $file;
-    }
-
-    /**
      * @param string $className
      * @return string
      */
@@ -88,5 +81,100 @@ abstract class AbstractImport implements ImportInterface
             return 'NULL';
         }
         return $this->em->getConnection()->quote($val);
+    }
+
+    /**
+     * @param string[] $queries
+     * @return $this
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function save(array $queries): self
+    {
+        $this->em->getConnection()->executeStatement(
+            implode("; \n", $queries)
+        );
+        return $this;
+    }
+
+
+    protected function isMySQL(): bool
+    {
+        return $this->em->getConnection()->getDatabasePlatform() instanceof MySQLPlatform;
+    }
+
+
+    protected function isPSQL(): bool
+    {
+        return $this->em->getConnection()->getDatabasePlatform() instanceof PostgreSQLPlatform;
+    }
+
+    /**
+     * @param QueryBuilder $insertSQL
+     * @param string|null $pimaryKey
+     * @return string
+     * @throws \Doctrine\DBAL\Exception
+     */
+    protected function insertToReplace(QueryBuilder $insertSQL, ?string $primaryKey = null): string
+    {
+        $platform = $this->em->getConnection()->getDatabasePlatform();
+        if ($this->isMySQL()) {
+            $sql = $insertSQL->getSQL();
+            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
+        }
+
+        if ($this->isPSQL()) {
+            $values = $insertSQL->getQueryPart("values");
+            $sql = $insertSQL->getSQL();
+            if (!$primaryKey) {
+                reset($values);
+                $primaryKey = key($values);
+            }
+            array_shift($values);
+            $parts = [];
+            foreach ($values as $column => $val) {
+                $parts[] = "{$column} = {$val}";
+            }
+            $sql .= " ON CONFLICT ({$primaryKey}) DO UPDATE  SET " . implode(", ", $parts);
+            return $sql;
+        }
+
+        throw $this->createUnsupportedDatabaseException();
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    protected function createUnsupportedDatabaseException(): Throwable
+    {
+        return new Exception("Unsupported database type");
+    }
+
+    /**
+     * @param string $className
+     * @return string[]
+     * @throws \Doctrine\ORM\Mapping\MappingException
+     */
+    protected function getFieldNames(string $className): array
+    {
+        $metaData = $this->em->getClassMetadata($className);
+        $result = [];
+        foreach ($metaData->getFieldNames() as $name) {
+            $result[$name] = $metaData->getColumnName($name);
+        }
+        foreach ($metaData->getAssociationNames() as $name) {
+            if ($metaData->isSingleValuedAssociation($name)) {
+                $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTestValue(): ?string
+    {
+        return $this->getDefaultValue();
     }
 }

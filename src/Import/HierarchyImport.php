@@ -2,12 +2,30 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
+use Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
+
 /**
  * Class HierarchyImport
  * @package Bordeux\Bundle\GeoNameBundle\Import
+ *
+ * @todo: Improve it. Right now blocker is not unique id in CSV file, so is hard to do REPLACE query on ysqml & psql
  */
-class HierarchyImport extends GeoNameImport
+class HierarchyImport extends AbstractImport
 {
+    const BULK_SIZE = 1000;
+
+    protected function getHeaders(): array
+    {
+        return [
+            new Header(0, 'parent_id', Header::TYPE_INT),
+            new Header(1, 'child_id', Header::TYPE_INT),
+            new Header(2, 'type', Header::TYPE_STRING)
+        ];
+    }
+
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -16,46 +34,30 @@ class HierarchyImport extends GeoNameImport
      */
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders());
 
-        $avrOneLineSize = 29.4;
+        $fieldsNames = $this->getFieldNames(Hierarchy::class);
+        $tableName = $this->getTableName(Hierarchy::class);
+        $geoNamesTable = $this->getTableName(GeoName::class);
         $connection = $this->em->getConnection();
-        $fileInside = basename($filePath, ".zip") . '.txt';
-        $filePath = "zip://{$filePath}#{$fileInside}";
-        $tsvFile = $this->readTSV($filePath);
-        $max = (int)$tsvFile->getSize() / $avrOneLineSize;
-        $tableName = $this->getTableName(HierarchyImport::class);
 
         $connection->beginTransaction();
-
-        $pos = 0;
-
-        $buffer = [];
-
-        $queryBuilder = $connection->createQueryBuilder()
-            ->insert($tableName);
-
-        foreach ($tsvFile as $row) {
-            $row = array_map('trim', $row);
-            if (!is_numeric($row[0] ?? null)) {
-                continue;
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            $buffer = [];
+            foreach ($bulk as $item) {
+                $parentId = (int)$item['parent_id'];
+                $childId = (int)$item['child_id'];
+                $buffer[] = "
+                    INSERT INTO {$tableName} ({$fieldsNames['parent']}, {$fieldsNames['child']}, {$fieldsNames['type']})
+                    SELECT g.id, g2.id, {$this->escape($item['type'])}
+                    FROM {$geoNamesTable} g, {$geoNamesTable} g2
+                    WHERE g.id = {$parentId} AND g2.id = {$childId}
+                    LIMIT 1;
+                ";
             }
-
-            $query = $queryBuilder->values([
-
-            ]);
-
-
-            $buffer[] = $this->insertToReplace($query);
-
-            $pos++;
-
-            if ($pos % static::BATCH_SIZE) {
-                $this->save($buffer);
-                $buffer = [];
-                is_callable($progress) && $progress(($pos) / $max);
-            }
+            $this->save($buffer);
         }
-        !empty($buffer) && $this->save($buffer);
         $connection->commit();
         return true;
     }

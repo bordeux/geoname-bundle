@@ -6,9 +6,7 @@ use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Doctrine\DBAL\Query\QueryBuilder;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
 
 /**
  * Class GeoNameImport
@@ -16,7 +14,35 @@ use Doctrine\DBAL\Query\QueryBuilder;
  */
 class GeoNameImport extends AbstractImport
 {
-    const BATCH_SIZE = 10000;
+    const BULK_SIZE = 10000;
+
+    /**
+     * @return Header[]
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            new Header(0, 'geoname_id', Header::TYPE_INT),
+            new Header(1, 'name'),
+            new Header(2, 'asci_name'),
+            new Header(3, 'alternate_names'),
+            new Header(4, 'latitude', Header::TYPE_FLOAT),
+            new Header(5, 'longitude', Header::TYPE_FLOAT),
+            new Header(6, 'feature_class'),
+            new Header(7, 'feature_code'),
+            new Header(8, 'country_code'),
+            new Header(9, 'cc2'),
+            new Header(10, 'admin1_code'),
+            new Header(11, 'admin2_code'),
+            new Header(12, 'admin3_code'),
+            new Header(13, 'admin4_code'),
+            new Header(14, 'population', Header::TYPE_INT),
+            new Header(15, 'elevation', Header::TYPE_INT),
+            new Header(16, 'dem', Header::TYPE_INT),
+            new Header(17, 'timezone'),
+            new Header(18, 'modification_date'),
+        ];
+    }
 
     /**
      * @param string $filePath
@@ -27,27 +53,7 @@ class GeoNameImport extends AbstractImport
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
         $reader = new TextFileReader($filePath, $progress);
-        $reader->addHeaders([
-            new TextFileReader\Header(0, 'geoname_id'),
-            new TextFileReader\Header(1, 'name'),
-            new TextFileReader\Header(2, 'asci_name'),
-            new TextFileReader\Header(3, 'alternate_names'),
-            new TextFileReader\Header(4, 'latitude'),
-            new TextFileReader\Header(5, 'longitude'),
-            new TextFileReader\Header(6, 'feature_class'),
-            new TextFileReader\Header(7, 'feature_code'),
-            new TextFileReader\Header(8, 'country_code'),
-            new TextFileReader\Header(9, 'cc2'),
-            new TextFileReader\Header(10, 'admin1_code'),
-            new TextFileReader\Header(11, 'admin2_code'),
-            new TextFileReader\Header(12, 'admin3_code'),
-            new TextFileReader\Header(13, 'admin4_code'),
-            new TextFileReader\Header(14, 'population'),
-            new TextFileReader\Header(15, 'elevation'),
-            new TextFileReader\Header(16, 'dem'),
-            new TextFileReader\Header(17, 'timezone'),
-            new TextFileReader\Header(18, 'modification_date'),
-        ]);
+        $reader->addHeaders($this->getHeaders());
 
         $fieldsNames = $this->getFieldNames(GeoName::class);
         $geoNameTableName = $this->getTableName(GeoName::class);
@@ -55,14 +61,14 @@ class GeoNameImport extends AbstractImport
         $administrativeTableName = $this->getTableName(Administrative::class);
         $connection = $this->em->getConnection();
         $connection->beginTransaction();
-        foreach ($reader->process(static::BATCH_SIZE) as $bulk) {
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
             $buffer = [];
             foreach ($bulk as $item) {
                 $countryCode = $item['country_code'];
                 $admin1Code = $item['admin1_code'];
                 $modificationDate = $item['modification_date'];
 
-                if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $modificationDate)) {
                     continue;
                 }
 
@@ -97,70 +103,6 @@ class GeoNameImport extends AbstractImport
         $connection->commit();
 
         return true;
-    }
-
-
-    /**
-     * @param QueryBuilder $insertSQL
-     * @return string
-     * @throws \Doctrine\DBAL\Exception
-     */
-    protected function insertToReplace(QueryBuilder $insertSQL): string
-    {
-        $platform = $this->em->getConnection()->getDatabasePlatform();
-        if ($platform instanceof MySQLPlatform) {
-            $sql = $insertSQL->getSQL();
-            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
-        }
-
-        if ($platform instanceof PostgreSQLPlatform) {
-            $values = $insertSQL->getQueryPart("values");
-            $sql = $insertSQL->getSQL();
-            reset($values);
-            $index = key($values);
-            array_shift($values);
-            $parts = [];
-            foreach ($values as $column => $val) {
-                $parts[] = "{$column} = {$val}";
-            }
-            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET " . implode(", ", $parts);
-            return $sql;
-        }
-
-        throw new \Exception("Unsupported database type");
-    }
-
-    /**
-     * @param string[] $queries
-     * @return $this
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function save(array $queries): self
-    {
-        $this->em->getConnection()->executeStatement(
-            implode("; \n", $queries)
-        );
-        return $this;
-    }
-
-
-    /**
-     * @return string[]
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    protected function getFieldNames(string $className): array
-    {
-        $metaData = $this->em->getClassMetadata($className);
-        $result = [];
-        foreach ($metaData->getFieldNames() as $name) {
-            $result[$name] = $metaData->getColumnName($name);
-        }
-        foreach ($metaData->getAssociationNames() as $name) {
-            if ($metaData->isSingleValuedAssociation($name)) {
-                $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
-            }
-        }
-        return $result;
     }
 
     public function getName(): string
