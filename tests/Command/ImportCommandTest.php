@@ -50,7 +50,7 @@ class ImportCommandTest extends KernelTestCase
             '--force' => true
         ]), $this->output);
 
-        $this->em = self::$kernel->getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::$kernel->getContainer()->get("doctrine")->getEntityManager();
     }
 
     /**
