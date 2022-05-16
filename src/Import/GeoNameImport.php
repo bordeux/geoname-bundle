@@ -3,10 +3,12 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
+use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
 use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
+use Doctrine\DBAL\ParameterType;
 
 /**
  * Class GeoNameImport
@@ -14,7 +16,7 @@ use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
  */
 class GeoNameImport extends AbstractImport
 {
-    const BULK_SIZE = 10000;
+    const BULK_SIZE = 5000;
 
     /**
      * @return Header[]
@@ -55,10 +57,6 @@ class GeoNameImport extends AbstractImport
         $reader = new TextFileReader($filePath, $progress);
         $reader->addHeaders($this->getHeaders());
 
-        $fieldsNames = $this->getFieldNames(GeoName::class);
-        $geoNameTableName = $this->getTableName(GeoName::class);
-        $timezoneTableName = $this->getTableName(Timezone::class);
-        $administrativeTableName = $this->getTableName(Administrative::class);
         $connection = $this->em->getConnection();
         $connection->beginTransaction();
         foreach ($reader->process(static::BULK_SIZE) as $bulk) {
@@ -66,43 +64,105 @@ class GeoNameImport extends AbstractImport
             foreach ($bulk as $item) {
                 $countryCode = $item['country_code'];
                 $admin1Code = $item['admin1_code'];
-                $modificationDate = $item['modification_date'];
-
-                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $modificationDate)) {
-                    continue;
-                }
-
-                $data = [
-                    $fieldsNames['id'] => $item['geoname_id'], //must be as first!
-                    $fieldsNames['name'] => $this->escape($item['name']),
-                    $fieldsNames['asciiName'] => $this->escape($item['asci_name']),
-                    $fieldsNames['latitude'] => $this->escape($item['latitude']),
-                    $fieldsNames['longitude'] => $this->escape($item['longitude']),
-                    $fieldsNames['featureClass'] => $this->escape($item['feature_class']),
-                    $fieldsNames['featureCode'] => $this->escape($item['feature_code']),
-                    $fieldsNames['countryCode'] => $this->escape($countryCode),
-                    $fieldsNames['cc2'] => $this->escape($item['cc2']),
-                    $fieldsNames['population'] => $this->escape($item['population']),
-                    $fieldsNames['elevation'] => $this->escape($item['elevation']),
-                    $fieldsNames['dem'] => $this->escape($item['dem']),
-                    $fieldsNames['modificationDate'] => $this->escape($modificationDate),
-                    $fieldsNames['timezone'] => $item['timezone'] ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->escape($item['timezone']) . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin1'] => $item['admin1_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin2'] => $item['admin2_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin2_code']}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin3'] => $item['admin3_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin3_code']}") . " LIMIT 1)" : 'NULL',
-                    $fieldsNames['admin4'] => $item['admin4_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin4_code']}") . " LIMIT 1)" : 'NULL',
-                ];
-
-                $query = $connection->createQueryBuilder()
-                    ->insert($geoNameTableName)->values($data);
-                $buffer[] = $this->insertToReplace($query);
+                $item['admin1'] = "{$countryCode}.{$admin1Code}";
+                $item['admin2'] = "{$countryCode}.{$admin1Code}.{$item['admin2_code']}";
+                $item['admin3'] = "{$countryCode}.{$admin1Code}.{$item['admin3_code']}";
+                $item['admin4'] = "{$countryCode}.{$admin1Code}.{$item['admin4_code']}";
+                $buffer[] = $item;
             }
-            $this->save($buffer);
+
+            $this->insert($buffer);
         }
 
         $connection->commit();
 
         return true;
+    }
+
+    protected function insert(array $buffer): void
+    {
+        $pseudoSql = "
+            INSERT INTO {geoname} (
+                {geoname:id},
+                {geoname:name},
+                {geoname:asciiName},
+                {geoname:latitude},
+                {geoname:longitude},
+                {geoname:featureClass},
+                {geoname:featureCode},
+                {geoname:countryCode},
+                {geoname:cc2},
+                {geoname:admin1},
+                {geoname:admin2},
+                {geoname:admin3},
+                {geoname:admin4},
+                {geoname:population},
+                {geoname:elevation},
+                {geoname:dem},
+                {geoname:timezone},
+                {geoname:modificationDate}
+            )
+            SELECT
+                (_v.value->>'geoname_id')::integer,
+                (_v.value->>'name'),
+                (_v.value->>'ascii_name'),
+                (_v.value->>'latitude')::double precision,
+                (_v.value->>'longitude')::double precision,
+                (_v.value->>'feature_class'),
+                (_v.value->>'feature_code'),
+                (_v.value->>'country_code'),
+                (_v.value->>'cc2'),
+                a1.id,
+                a2.id,
+                a3.id,
+                a4.id,
+                (_v.value->>'population')::integer,
+                (_v.value->>'elevation')::integer,
+                (_v.value->>'dem')::integer,
+                t.{timezone:id},
+                (_v.value->>'modification_date')::date
+
+            FROM json_array_elements( (:data)::json ) _v
+            LEFT JOIN {administrative} a1 ON a1.{administrative:code} = (_v.value->>'admin1')
+            LEFT JOIN {administrative} a2 ON a2.{administrative:code} = (_v.value->>'admin2')
+            LEFT JOIN {administrative} a3 ON a3.{administrative:code} = (_v.value->>'admin3')
+            LEFT JOIN {administrative} a4 ON a4.{administrative:code} = (_v.value->>'admin4')
+            LEFT JOIN {timezone} t ON t.{timezone:timezone} = (_v.value->>'timezone')
+            ON CONFLICT ({geoname:id}) DO UPDATE  SET
+                {geoname:name} = EXCLUDED.{geoname:name},
+                {geoname:asciiName} = EXCLUDED.{geoname:asciiName},
+                {geoname:latitude} = EXCLUDED.{geoname:latitude},
+                {geoname:longitude} = EXCLUDED.{geoname:longitude},
+                {geoname:featureClass} = EXCLUDED.{geoname:featureClass},
+                {geoname:featureCode} = EXCLUDED.{geoname:featureCode},
+                {geoname:countryCode} = EXCLUDED.{geoname:countryCode},
+                {geoname:cc2} = EXCLUDED.{geoname:cc2},
+                {geoname:admin1} = EXCLUDED.{geoname:admin1},
+                {geoname:admin2} = EXCLUDED.{geoname:admin2},
+                {geoname:admin3} = EXCLUDED.{geoname:admin3},
+                {geoname:admin4} = EXCLUDED.{geoname:admin4},
+                {geoname:population} = EXCLUDED.{geoname:population},
+                {geoname:elevation} = EXCLUDED.{geoname:elevation},
+                {geoname:dem} = EXCLUDED.{geoname:dem},
+                {geoname:timezone} = EXCLUDED.{geoname:timezone},
+                {geoname:modificationDate} = EXCLUDED.{geoname:modificationDate}
+        ";
+
+        $sql = $this->parseQuery($pseudoSql, [
+            "geoname" => GeoName::class,
+            "administrative" => Administrative::class,
+            "timezone" => Timezone::class,
+        ]);
+
+        $this->em->getConnection()->executeStatement(
+            $sql,
+            [
+                'data' => json_encode($buffer)
+            ],
+            [
+                'data' =>  ParameterType::STRING
+            ]
+        );
     }
 
     public function getName(): string
@@ -125,9 +185,8 @@ class GeoNameImport extends AbstractImport
         return "https://download.geonames.org/export/dump/allCountries.zip#allCountries.txt";
     }
 
-    /* @todo
     public function getTestValue(): ?string
     {
         return "https://download.geonames.org/export/dump/PL.zip#PL.txt";
-    }*/
+    }
 }

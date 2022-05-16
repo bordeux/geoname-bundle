@@ -90,25 +90,31 @@ class ImportCommand extends Command
             $value = $input->getOption($importer->getOptionName());
             $skip = $input->getOption("skip-" . $importer->getOptionName());
             if (empty($value) || $skip) {
-                $output->writeln("Skipping importing " . $importer->getName());
+                $output->writeln("\nSkipping importing {$importer->getName()}");
                 continue;
             }
 
-            $output->writeln("Start importing " . $importer->getName() . " from {$value}");
+            $output->writeln("\nStart importing {$importer->getName()} from {$value}");
             $progress = $this->getProgressBar($output, "Downloading data for " . $importer->getName());
             $downloader = new Downloader($value, $downloadDir);
-            $file = $downloader->start(fn($value) => $progress->setProgress($value));
+            $file = $downloader->start(function ($value) use ($progress) {
+                $progress->setProgress($value);
+                var_dump("Progress = " . $value);
+            });
             $progress->finish();
 
 
             $progress = $this->getProgressBar($output, "Importing data: " . $importer->getName());
             $importer->import(
                 $file,
-                fn($value) => $progress->setProgress($value)
+                function ($value) use ($progress) {
+                    $progress->setProgress($value);
+                    var_dump($value);
+                }
             )->wait();
             $progress->finish();
             $downloader = null;
-            $output->writeln("Finished importing " . $importer->getName());
+            $output->writeln("\nFinished importing {$importer->getName()}");
         }
 
         return 0;

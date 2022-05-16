@@ -5,6 +5,7 @@ namespace Bordeux\Bundle\GeoNameBundle\Helper;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\RequestOptions;
 use RuntimeException;
 use ZipArchive;
 
@@ -19,6 +20,7 @@ class Downloader
 
     protected ClientInterface $client;
     protected string $url;
+    protected string $file;
     protected string $tmpDir;
     protected array $generatedFiles = [];
 
@@ -48,16 +50,16 @@ class Downloader
             $percentageFactor = 0.8;
         }
 
-        $this->client->getAsync(
+        $this->client->requestAsync(
+            "GET",
             new Uri($this->url),
             [
-                'progress' => function ($downloadTotal, $downloadedBytes) use ($progress, $percentageFactor) {
+                RequestOptions::PROGRESS => function ($downloadTotal, $downloadedBytes) use ($progress, $percentageFactor) {
                     if ($downloadTotal) {
                         $progress(($downloadedBytes / $downloadTotal) * $percentageFactor);
                     }
                 },
-                'sink' => $saveAs,
-                'save_to' => $saveAs, // support guzzle 6
+                RequestOptions::SINK => $saveAs
             ]
         )->wait();
 

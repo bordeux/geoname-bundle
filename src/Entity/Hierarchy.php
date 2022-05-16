@@ -34,7 +34,7 @@ class Hierarchy
     protected GeoName $parent;
 
     /**
-     * @var GeoName|null
+     * @var GeoName
      *
      * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
      * @ORM\JoinColumn(name="child_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")

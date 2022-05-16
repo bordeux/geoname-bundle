@@ -2,14 +2,11 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-use Doctrine\DBAL\Platforms\MySQLPlatform;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
-use phpDocumentor\Reflection\Types\Boolean;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -70,77 +67,38 @@ abstract class AbstractImport implements ImportInterface
             ->getTableName();
     }
 
-
     /**
-     * @param string|null $val
+     * @param string $sql
+     * @param array $tableMap
      * @return string
+     * @throws \Doctrine\ORM\Mapping\MappingException
      */
-    protected function escape(?string $val): string
+    protected function parseQuery(string $sql, array $tableMap): string
     {
-        if ($val === null || strlen($val) === 0) {
-            return 'NULL';
-        }
-        return $this->em->getConnection()->quote($val);
-    }
-
-    /**
-     * @param string[] $queries
-     * @return $this
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function save(array $queries): self
-    {
-        $this->em->getConnection()->executeStatement(
-            implode("; \n", $queries)
-        );
-        return $this;
-    }
-
-
-    protected function isMySQL(): bool
-    {
-        return $this->em->getConnection()->getDatabasePlatform() instanceof MySQLPlatform;
-    }
-
-
-    protected function isPSQL(): bool
-    {
-        return $this->em->getConnection()->getDatabasePlatform() instanceof PostgreSQLPlatform;
-    }
-
-    /**
-     * @param QueryBuilder $insertSQL
-     * @param string|null $pimaryKey
-     * @return string
-     * @throws \Doctrine\DBAL\Exception
-     */
-    protected function insertToReplace(QueryBuilder $insertSQL, ?string $primaryKey = null): string
-    {
-        $platform = $this->em->getConnection()->getDatabasePlatform();
-        if ($this->isMySQL()) {
-            $sql = $insertSQL->getSQL();
-            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
-        }
-
-        if ($this->isPSQL()) {
-            $values = $insertSQL->getQueryPart("values");
-            $sql = $insertSQL->getSQL();
-            if (!$primaryKey) {
-                reset($values);
-                $primaryKey = key($values);
+        $connection = $this->em->getConnection();
+        $sql = preg_replace_callback('/({([a-zA-Z0-9_\-]+)})/', function ($matches) use ($tableMap) {
+            $name = $matches[2] ?? null;
+            $entity = $tableMap[$name] ?? null;
+            if (empty($entity)) {
+                throw new InvalidArgumentException("Unable to find map to `{$name}` table");
             }
-            array_shift($values);
-            $parts = [];
-            foreach ($values as $column => $val) {
-                $parts[] = "{$column} = {$val}";
+            return $this->getTableName($entity);
+        }, $sql);
+
+
+        $sql = preg_replace_callback('/({([a-zA-Z0-9_\-]+):([a-zA-Z0-9_\-]+)})/', function ($matches) use ($tableMap, $connection) {
+            $name = $matches[2] ?? null;
+            $fieldName = $matches[3] ?? null;
+            $entity = $tableMap[$name] ?? null;
+            if (empty($entity) || empty($fieldName)) {
+                throw new InvalidArgumentException("Unable to find map to `{$name}` table");
             }
-            $sql .= " ON CONFLICT ({$primaryKey}) DO UPDATE  SET " . implode(", ", $parts);
-            return $sql;
-        }
+            $fields = $this->getFieldNames($entity);
+            return $connection->quoteIdentifier($fields[$fieldName]);
+        }, $sql);
 
-        throw $this->createUnsupportedDatabaseException();
+        return $sql;
     }
-
 
     /**
      * @throws Exception

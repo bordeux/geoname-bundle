@@ -3,8 +3,10 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
+use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
+use Doctrine\DBAL\ParameterType;
 
 /**
  * Class AlternateNameImport
@@ -12,7 +14,7 @@ use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
  */
 class AlternateNameImport extends AbstractImport
 {
-    const BULK_SIZE = 1000;
+    const BULK_SIZE = 5000;
 
     protected function getHeaders(): array
     {
@@ -34,27 +36,14 @@ class AlternateNameImport extends AbstractImport
     {
         $reader = new TextFileReader($filePath, $progress);
         $reader->addHeaders($this->getHeaders());
-
-        $fieldsNames = $this->getFieldNames(AlternateName::class);
-        $tableName = $this->getTableName(AlternateName::class);
-        $geonamesTable = $this->getTableName(AlternateName::class);
         $connection = $this->em->getConnection();
         $connection->beginTransaction();
         foreach ($reader->process(static::BULK_SIZE) as $bulk) {
-            $buffer = [];
-            foreach ($bulk as $item) {
-                $id = (int)$item['id'];
-                $geoNameId = (int)$item['geoname_id'];
-                $type = $this->escape($item['type'] ?: AlternateName::TYPE_NONE);
-                $value = $this->escape($item['value']);
-                $buffer[] = $this->prepareSQL("
-                                INSERT INTO {$tableName} ({$id}, {$fieldsNames['geoName']}, {$fieldsNames['type']}, {$fieldsNames['value']})
-                                SELECT {$item['id']}, g.id, {$type}, {$value}
-                                FROM {$geonamesTable} g
-                                WHERE g.id = {$geoNameId}
-                            ", $fieldsNames);
-            }
-            $this->save($buffer);
+            $this->insert(array_map(function (array $item) {
+                $item['type'] = $item['type'] ?: AlternateName::TYPE_NONE;
+                return $item;
+            }, $bulk));
+            var_dump("yeah1?");
         }
 
         $connection->commit();
@@ -62,26 +51,42 @@ class AlternateNameImport extends AbstractImport
         return true;
     }
 
-    /**
-     * @param string $sql
-     * @return string
-     * @throws \Throwable
-     */
-    private function prepareSQL(string $sql, array $fieldsNames): string
+    protected function insert(array $buffer): void
     {
-        $sql = trim($sql);
-        if ($this->isMySQL()) {
-            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
-        }
+        $pseudoSql = "
+            INSERT INTO {alternate_name} (
+                {alternate_name:id},
+                {alternate_name:geoName},
+                {alternate_name:type},
+                {alternate_name:value}
+            )
+            SELECT
+                (_v.value->>'id')::integer,
+                g.{geoname:id},
+                (_v.value->>'type'),
+                (_v.value->>'value')
+            FROM json_array_elements( (:data)::json ) _v
+            JOIN {geoname} g ON g.{geoname:id} = (_v.value->>'geoname_id')::integer
+            ON CONFLICT ({geoname:id}) DO UPDATE  SET
+                {alternate_name:geoName} = EXCLUDED.{alternate_name:geoName},
+                {alternate_name:type} = EXCLUDED.{alternate_name:type},
+                {alternate_name:value} = EXCLUDED.{alternate_name:value}
+        ";
 
-        if ($this->isPSQL()) {
-            return $sql . "
-                ON CONFLICT ({$fieldsNames['id']})
-                DO UPDATE SET {$fieldsNames['value']} = EXCLUDED.{$fieldsNames['value']},
-                {$fieldsNames['type']} = EXCLUDED.{$fieldsNames['type']}";
-        }
+        $sql = $this->parseQuery($pseudoSql, [
+            "geoname" => GeoName::class,
+            "alternate_name" => AlternateName::class
+        ]);
 
-        throw $this->createUnsupportedDatabaseException();
+        $this->em->getConnection()->executeStatement(
+            $sql,
+            [
+                'data' => json_encode($buffer)
+            ],
+            [
+                'data' => ParameterType::STRING
+            ]
+        );
     }
 
 
