@@ -168,11 +168,11 @@ class GeoName
     protected $parents;
 
     /**
-     * @var AlternateName[]
+     * @var ArrayCollection|AlternateName[]
      *
      * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\AlternateName", mappedBy="geoName")
      */
-    protected $alternateNames = [];
+    protected $alternateNames;
 
     /**
      * GeoName constructor.
@@ -506,8 +506,7 @@ class GeoName
     }
 
     /**
-     *
-     * @return AlternateName[]|null
+     * @return Collection|AlternateName[]
      */
     public function getAlternateNames(): ?Collection
     {

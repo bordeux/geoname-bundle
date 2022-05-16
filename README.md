@@ -82,40 +82,9 @@ Loads a list of all data from [geonames.org][1]
     php bin/console bordeux:geoname:import  --env=prod
 ```
 
-### Options
+### How to run tests?
 
-
-```
-Usage:
-  bordeux:geoname:import [options]
-
-Options:
-  -a, --archive[=ARCHIVE]                   Archive to GeoNames [default: "http://download.geonames.org/export/dump/allCount
-ries.zip"]
-  -t, --timezones[=TIMEZONES]               Timezones file [default: "http://download.geonames.org/export/dump/timeZones.txt
-"]
-  -o, --download-dir[=DOWNLOAD-DIR]         Download dir
-  -h, --help                                Display this help message
-  -q, --quiet                               Do not output any message
-  -V, --version                             Display this application version
-      --ansi                                Force ANSI output
-      --no-ansi                             Disable ANSI output
-  -n, --no-interaction                      Do not ask any interactive question
-  -e, --env=ENV                             The environment name [default: "dev"]
-      --no-debug                            Switches off debug mode
-  -a1, --admin1-codes[=ADMIN1-CODES]        Admin 1 Codes file [default: "http://download.geonames.org/export/dump/admin1Cod
-esASCII.txt"]
-  -a2, --admin2-codes[=ADMIN2-CODES]        Admin 2 Codes file [default: "http://download.geonames.org/export/dump/admin2Cod
-es.txt"]
-  -lc, --languages-codes[=LANGUAGES-CODES]  Admin 2 Codes file [default: "http://download.geonames.org/export/dump/iso-langu
-agecodes.txt"]
-  -v|vv|vvv, --verbose                      Increase the verbosity of messages: 1 for normal output, 2 for more verbose outp
-ut and 3 for debug
-
-Help:
-  Import GeoNames
-
-```
+Just run: ``dokcer-compose -f docker-compose.tests.yml up``
 
  [1]: https://geonames.org
  [2]: https://symfony.com
