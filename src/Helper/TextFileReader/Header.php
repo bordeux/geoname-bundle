@@ -3,6 +3,7 @@
 namespace Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Class Header
@@ -49,7 +50,7 @@ class Header
     public function getValue(array $row, int $lineNumber): mixed
     {
         if (!isset($row[$this->index])) {
-            throw new InvalidArgumentException("{$this->getName()}: Unable to find column `{$this->index}`. Issue on line {$lineNumber}");
+            throw $this->createException($row, $lineNumber, "Unable to find column `{$this->index}`");
         }
 
         $value = trim($row[$this->index]);
@@ -61,7 +62,7 @@ class Header
             if (filter_var($value, FILTER_VALIDATE_FLOAT) !== false) {
                 return (float)$value;
             }
-            throw new InvalidArgumentException("{$this->getName()}: Unable cast `{$value}` to float. Issue on line {$lineNumber}");
+            throw $this->createException($row, $lineNumber, "Unable cast `{$value}` to float");
         }
 
         if ($this->type === static::TYPE_INT) {
@@ -72,9 +73,14 @@ class Header
                 return (int)round((float)$value);
             }
 
-            throw new InvalidArgumentException("{$this->getName()}: Unable cast `{$value}` to int. Issue on line {$lineNumber}");
+            throw $this->createException($row, $lineNumber, "Unable cast `{$value}` to int");
         }
 
         return $value;
+    }
+
+    protected function createException(array $row, int $lineNumber, string $message): Throwable
+    {
+        return new InvalidArgumentException("Column {$this->getName()}, Index: {$this->index}, TSV line: {$lineNumber}, Message: {$message}, Row: " . implode(",", $row));
     }
 }
