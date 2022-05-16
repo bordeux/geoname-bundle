@@ -30,8 +30,7 @@ class ImportCommand extends Command
      */
     public function __construct(
         array $importers
-    )
-    {
+    ) {
         parent::__construct(static::NAME);
         $this->importers = $importers;
     }
@@ -63,7 +62,7 @@ class ImportCommand extends Command
                 "skip-{$importer->getOptionName()}",
                 null,
                 InputOption::VALUE_OPTIONAL,
-                "Simp importing {$importer->getName()}",
+                "Skip importing {$importer->getName()}",
                 false
             );
         }

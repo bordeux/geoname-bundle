@@ -91,7 +91,7 @@ class CountryImport extends AbstractImport
             $object->setLanguages(explode(",", $languages) ?: null);
             $object->setGeoName(
                 $this->em->getRepository(GeoName::class)
-                ->find($geoNameId)
+                    ->find($geoNameId)
             );
 
 
@@ -140,5 +140,25 @@ UpdateSelect;
             ->executeStatement($sql);
 
         return true;
+    }
+
+    public function getName(): string
+    {
+        return "Countries";
+    }
+
+    public function getOptionName(): string
+    {
+        return "countries";
+    }
+
+    public function getDescription(): string
+    {
+        return "Countries file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/countryInfo.txt";
     }
 }

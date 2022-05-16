@@ -3,15 +3,16 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
-use SplFileObject;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 
 /**
  * Class AdministrativeImport
- * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
 class AdministrativeImport extends AbstractImport
 {
+    protected const BULK_SIZE = 10000;
+
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -19,45 +20,27 @@ class AdministrativeImport extends AbstractImport
      */
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        $file->seek(PHP_INT_MAX);
-        $max = $file->key();
-        $file->seek(1); //skip header
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders([
+            new TextFileReader\Header(0, 'code'),
+            new TextFileReader\Header(1, 'name'),
+            new TextFileReader\Header(2, 'asci_name')
+        ]);
 
+        $connection = $this->em->getConnection();
         $administrative = $this->em->getRepository(Administrative::class);
-
-        $pos = 0;
-
-        foreach ($file as $row) {
-            $row = array_map('trim', $row);
-            list(
-                $code,
-                $name,
-                $asciiName,
-                $geoNameId
-                ) = $row;
-
-
-            $object = $administrative->findOneBy(['code' => $code]) ?: new Administrative();
-            $object->setCode($code);
-            $object->setName($name);
-            $object->setAsciiName($asciiName);
-
-            !$object->getId() && $this->em->persist($object);
-
-            is_callable($progress) && $progress(($pos++) / $max);
-
-            if ($pos % 10000) {
-                $this->em->flush();
-                $this->em->clear();
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            foreach ($bulk as $item) {
+                $object = $administrative->findOneBy(['code' => $item['code']]) ?: (new Administrative())->setCode($item['code']);
+                $object->setName($item['name'])
+                    ->setAsciiName($item['asci_name']);
+                !$object->getId() && $this->em->persist($object);
             }
+            $this->em->flush();
+            $this->em->clear();
         }
-
-        $this->em->flush();
-        $this->em->clear();
-
+        $connection->commit();
         return true;
     }
 

@@ -5,6 +5,7 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -25,94 +26,74 @@ class GeoNameImport extends AbstractImport
      */
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
-
-        $avrOneLineSize = 29.4;
-        $connection = $this->em->getConnection();
-        $fileInside = basename($filePath, ".zip") . '.txt';
-        $filePath = "zip://{$filePath}#{$fileInside}";
-
-        $tsvFile = $this->readTSV($filePath);
-        $max = (int)($tsvFile->getSize() / $avrOneLineSize);
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders([
+            new TextFileReader\Header(0, 'geoname_id'),
+            new TextFileReader\Header(1, 'name'),
+            new TextFileReader\Header(2, 'asci_name'),
+            new TextFileReader\Header(3, 'alternate_names'),
+            new TextFileReader\Header(4, 'latitude'),
+            new TextFileReader\Header(5, 'longitude'),
+            new TextFileReader\Header(6, 'feature_class'),
+            new TextFileReader\Header(7, 'feature_code'),
+            new TextFileReader\Header(8, 'country_code'),
+            new TextFileReader\Header(9, 'cc2'),
+            new TextFileReader\Header(10, 'admin1_code'),
+            new TextFileReader\Header(11, 'admin2_code'),
+            new TextFileReader\Header(12, 'admin3_code'),
+            new TextFileReader\Header(13, 'admin4_code'),
+            new TextFileReader\Header(14, 'population'),
+            new TextFileReader\Header(15, 'elevation'),
+            new TextFileReader\Header(16, 'dem'),
+            new TextFileReader\Header(17, 'timezone'),
+            new TextFileReader\Header(18, 'modification_date'),
+        ]);
 
         $fieldsNames = $this->getFieldNames(GeoName::class);
         $geoNameTableName = $this->getTableName(GeoName::class);
         $timezoneTableName = $this->getTableName(Timezone::class);
         $administrativeTableName = $this->getTableName(Administrative::class);
-
+        $connection = $this->em->getConnection();
         $connection->beginTransaction();
+        foreach ($reader->process(static::BATCH_SIZE) as $bulk) {
+            $buffer = [];
+            foreach ($bulk as $item) {
+                $countryCode = $item['country_code'];
+                $admin1Code = $item['admin1_code'];
+                $modificationDate = $item['modification_date'];
 
-        $pos = 0;
+                if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
+                    continue;
+                }
 
-        $buffer = [];
+                $data = [
+                    $fieldsNames['id'] => $item['geoname_id'], //must be as first!
+                    $fieldsNames['name'] => $this->escape($item['name']),
+                    $fieldsNames['asciiName'] => $this->escape($item['asci_name']),
+                    $fieldsNames['latitude'] => $this->escape($item['latitude']),
+                    $fieldsNames['longitude'] => $this->escape($item['longitude']),
+                    $fieldsNames['featureClass'] => $this->escape($item['feature_class']),
+                    $fieldsNames['featureCode'] => $this->escape($item['feature_code']),
+                    $fieldsNames['countryCode'] => $this->escape($countryCode),
+                    $fieldsNames['cc2'] => $this->escape($item['cc2']),
+                    $fieldsNames['population'] => $this->escape($item['population']),
+                    $fieldsNames['elevation'] => $this->escape($item['elevation']),
+                    $fieldsNames['dem'] => $this->escape($item['dem']),
+                    $fieldsNames['modificationDate'] => $this->escape($modificationDate),
+                    $fieldsNames['timezone'] => $item['timezone'] ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->escape($item['timezone']) . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin1'] => $item['admin1_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin2'] => $item['admin2_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin2_code']}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin3'] => $item['admin3_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin3_code']}") . " LIMIT 1)" : 'NULL',
+                    $fieldsNames['admin4'] => $item['admin4_code'] ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$item['admin4_code']}") . " LIMIT 1)" : 'NULL',
+                ];
 
-        $queryBuilder = $connection->createQueryBuilder()
-            ->insert($geoNameTableName);
-
-        foreach ($tsvFile as $csv) {
-            if (!is_numeric($csv[0] ?? null)) {
-                continue;
+                $query = $connection->createQueryBuilder()
+                    ->insert($geoNameTableName)->values($data);
+                $buffer[] = $this->insertToReplace($query);
             }
-
-            list(
-                $geoNameId,
-                $name,
-                $asciiName,
-                $alternateNames,
-                $latitude,
-                $longitude,
-                $featureClass,
-                $featureCode,
-                $countryCode,
-                $cc2,
-                $admin1Code,
-                $admin2Code,
-                $admin3Code,
-                $admin4Code,
-                $population,
-                $elevation,
-                $dem,
-                $timezone,
-                $modificationDate
-                ) = array_map('trim', $csv);
-
-            if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
-                continue;
-            }
-
-            $data = [
-                $fieldsNames['id'] => (int)$geoNameId, //must be as first!
-                $fieldsNames['name'] => $this->escape($name),
-                $fieldsNames['asciiName'] => $this->escape($asciiName),
-                $fieldsNames['latitude'] => $this->escape($latitude),
-                $fieldsNames['longitude'] => $this->escape($longitude),
-                $fieldsNames['featureClass'] => $this->escape($featureClass),
-                $fieldsNames['featureCode'] => $this->escape($featureCode),
-                $fieldsNames['countryCode'] => $this->escape($countryCode),
-                $fieldsNames['cc2'] => $this->escape($cc2),
-                $fieldsNames['population'] => $this->escape($population),
-                $fieldsNames['elevation'] => $this->escape($elevation),
-                $fieldsNames['dem'] => $this->escape($dem),
-                $fieldsNames['modificationDate'] => $this->escape($modificationDate),
-                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->escape($timezone) . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->escape("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
-            ];
-
-
-            $query = $queryBuilder->values($data);
-            $buffer[] = $this->insertToReplace($query);
-            $pos++;
-
-            if ($pos % static::BATCH_SIZE) {
-                $this->save($buffer);
-                $buffer = [];
-                is_callable($progress) && $progress(($pos) / $max);
-            }
+            $this->save($buffer);
         }
 
-        !empty($buffer) && $this->save($buffer);
         $connection->commit();
 
         return true;

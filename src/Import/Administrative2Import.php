@@ -2,8 +2,8 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-class Administrative2Import extends AdministrativeImport {
-
+class Administrative2Import extends AdministrativeImport
+{
     public function getName(): string
     {
         return "Administrative 2";

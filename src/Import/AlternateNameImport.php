@@ -4,6 +4,7 @@ namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 
 class AlternateNameImport extends GeoNameImport
 {
@@ -15,6 +16,14 @@ class AlternateNameImport extends GeoNameImport
      */
     protected function importData(string $filePath, ?callable $progress = null): bool
     {
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders([
+            new TextFileReader\Header(0, 'code'),
+            new TextFileReader\Header(1, 'name'),
+            new TextFileReader\Header(2, 'asci_name')
+        ]);
+
+
         $avrOneLineSize = 29.4;
 
         $connection = $this->em->getConnection();
