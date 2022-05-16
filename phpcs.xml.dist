@@ -3,6 +3,7 @@
     <description>The coding standards</description>
     <exclude-pattern>*/tests/var/*</exclude-pattern>
     <file>src</file>
+    <file>tests</file>
     <extensions>php</extensions>
 
 

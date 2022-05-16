@@ -108,4 +108,9 @@ class AlternateNameImport extends AbstractImport
     {
         return "https://download.geonames.org/export/dump/alternateNamesV2.zip#alternateNamesV2.txt";
     }
+
+    public function getTestValue(): ?string
+    {
+        return "http://download.geonames.org/export/dump/alternatenames/PL.zip#PL.txt";
+    }
 }

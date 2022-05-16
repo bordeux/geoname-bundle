@@ -165,6 +165,13 @@ class GeoName
      */
     protected $parents;
 
+    /**
+     * @var AlternateName[]
+     *
+     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\AlternateName", mappedBy="geoName")
+     */
+    protected $alternateNames = [];
+
 
     /**
      * @return int|null
@@ -486,5 +493,14 @@ class GeoName
     public function getCountry(): ?Country
     {
         return $this->country;
+    }
+
+    /**
+     *
+     * @return AlternateName[]
+     */
+    public function getAlternateNames(): array
+    {
+        return $this->alternateNames;
     }
 }
