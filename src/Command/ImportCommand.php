@@ -98,7 +98,7 @@ class ImportCommand extends Command
             $progress = $this->getProgressBar($output, "Downloading data for " . $importer->getName());
             $downloader = new Downloader($value, $downloadDir);
             $file = $downloader->start(function ($value) use ($progress) {
-                $progress->setProgress($value);
+                $progress->setProgress((int) $value);
             });
             $progress->finish();
 
@@ -107,7 +107,7 @@ class ImportCommand extends Command
             $importer->import(
                 $file,
                 function ($value) use ($progress) {
-                    $progress->setProgress($value);
+                    $progress->setProgress((int)$value);
                 }
             )->wait();
             $progress->finish();
