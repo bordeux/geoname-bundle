@@ -99,7 +99,6 @@ class ImportCommand extends Command
             $downloader = new Downloader($value, $downloadDir);
             $file = $downloader->start(function ($value) use ($progress) {
                 $progress->setProgress($value);
-                var_dump("Progress = " . $value);
             });
             $progress->finish();
 
@@ -109,7 +108,6 @@ class ImportCommand extends Command
                 $file,
                 function ($value) use ($progress) {
                     $progress->setProgress($value);
-                    var_dump($value);
                 }
             )->wait();
             $progress->finish();

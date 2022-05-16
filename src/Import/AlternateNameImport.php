@@ -43,7 +43,6 @@ class AlternateNameImport extends AbstractImport
                 $item['type'] = $item['type'] ?: AlternateName::TYPE_NONE;
                 return $item;
             }, $bulk));
-            var_dump("yeah1?");
         }
 
         $connection->commit();
