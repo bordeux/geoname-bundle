@@ -124,4 +124,10 @@ class GeoNameImport extends AbstractImport
     {
         return "https://download.geonames.org/export/dump/allCountries.zip#allCountries.txt";
     }
+
+    /* @todo
+    public function getTestValue(): ?string
+    {
+        return "https://download.geonames.org/export/dump/PL.zip#PL.txt";
+    }*/
 }

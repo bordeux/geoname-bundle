@@ -90,7 +90,7 @@ class TextFileReader
         $buffer = [];
         while (!feof($handle)) {
             $lineNumber++;
-            $lineRaw = fgets($handle, 8192);
+            $lineRaw = fgets($handle, 1024 * 1024);
             $readBytes += strlen($lineRaw);
             $line = trim($lineRaw);
 
