@@ -94,7 +94,7 @@ class ImportCommand extends Command
                 continue;
             }
 
-            $output->writeln("Start importing " . $importer->getName());
+            $output->writeln("Start importing " . $importer->getName() . " from {$value}");
             $progress = $this->getProgressBar($output, "Downloading data for " . $importer->getName());
             $downloader = new Downloader($value, $downloadDir);
             $file = $downloader->start(fn($value) => $progress->setProgress($value));
