@@ -1,0 +1,5 @@
+build:
+  nodes:
+    my-node:
+      services:
+        postgres: 14
