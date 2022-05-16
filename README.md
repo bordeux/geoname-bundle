@@ -14,7 +14,7 @@ applications.
 From the geonames.org website:
 
 > The GeoNames geographical database covers all countries and contains over
-> eight million placenames that are available for download free of charge.
+> eight million place names that are available for download free of charge.
 
 
 ## When to use this bundle
@@ -30,7 +30,7 @@ covered worldwide.
 
     * Countries
     * Timezones
-    * States & Provences
+    * States & Provinces
     * Cities, Towns, Suburbs, Villages etc.
 
 - Provides the following data store implementations:
@@ -72,7 +72,7 @@ Execute the migrations using the supplied migration configuration
 almost 350 MB data from [geonames.org][1].
 
 The following commands can be used in sequence to load all supported data from
-the [geonames.org][1] export (http://download.geonames.org/export/dump)
+the [geonames.org][1] export (https://download.geonames.org/export/dump)
 
 ### Import data
 
@@ -117,5 +117,5 @@ Help:
 
 ```
 
- [1]: http://geonames.org
- [2]: http://symfony.com
+ [1]: https://geonames.org
+ [2]: https://symfony.com

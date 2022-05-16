@@ -2,20 +2,11 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
 use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-
 
 class AlternateNameImport extends GeoNameImport
 {
-
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -31,7 +22,7 @@ class AlternateNameImport extends GeoNameImport
         $fileInside = basename($filePath, ".zip") . '.txt';
         $filePath = "zip://{$filePath}#{$fileInside}";
         $tsvFile = $this->readTSV($filePath);
-        $max = (int) ($tsvFile->getSize() / $avrOneLineSize);
+        $max = (int)($tsvFile->getSize() / $avrOneLineSize);
 
         $fieldsNames = $this->getFieldNames(AlternateName::class);
 
@@ -53,4 +44,24 @@ class AlternateNameImport extends GeoNameImport
         return true;
     }
 
+
+    public function getName(): string
+    {
+        return "AlternateNames";
+    }
+
+    public function getOptionName(): string
+    {
+        return "alternate-names";
+    }
+
+    public function getDescription(): string
+    {
+        return "Alternate names file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/alternateNamesV2.zip#alternateNamesV2.txt";
+    }
 }

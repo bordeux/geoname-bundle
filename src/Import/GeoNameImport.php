@@ -181,4 +181,24 @@ class GeoNameImport extends AbstractImport
         }
         return $result;
     }
+
+    public function getName(): string
+    {
+        return "GeoNames";
+    }
+
+    public function getOptionName(): string
+    {
+        return "geonames";
+    }
+
+    public function getDescription(): string
+    {
+        return "Geonames file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/allCountries.zip#allCountries.txt";
+    }
 }

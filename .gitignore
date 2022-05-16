@@ -3,3 +3,4 @@ tests/var/
 vendor
 .phpunit.result.cache
 .idea
+test.php

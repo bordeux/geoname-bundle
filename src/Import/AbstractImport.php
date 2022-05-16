@@ -3,7 +3,6 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Generator;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use SplFileObject;
@@ -61,7 +60,7 @@ abstract class AbstractImport implements ImportInterface
      */
     protected function readTSV(string $filePath): SplFileObject
     {
-        $file = new SplFileObject("animals.csv");
+        $file = new SplFileObject($filePath);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
         $file->setCsvControl("\t");
         return $file;

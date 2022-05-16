@@ -3,11 +3,6 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
 use SplFileObject;
 
 /**
@@ -64,5 +59,25 @@ class AdministrativeImport extends AbstractImport
         $this->em->clear();
 
         return true;
+    }
+
+    public function getName(): string
+    {
+        return "Administrative";
+    }
+
+    public function getOptionName(): string
+    {
+        return "admin1-codes";
+    }
+
+    public function getDescription(): string
+    {
+        return "Admin 1 codes file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/admin1CodesASCII.txt";
     }
 }

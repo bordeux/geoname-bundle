@@ -30,7 +30,6 @@ class ImportCommandTest extends KernelTestCase
         static::$kernel = static::createKernel();
         static::$kernel->boot();
         $this->application = new Application(static::$kernel);
-        $this->application->add(new ImportCommand());
         $this->application->getHelp();
 
         $command = $this->application->find(static::DOCTRINE_COMMAND);
@@ -55,7 +54,7 @@ class ImportCommandTest extends KernelTestCase
 
         $input = new ArrayInput([
             'command' => $command->getName(),
-            '--archive' => 'http://download.geonames.org/export/dump/AX.zip'
+            '--geonames' => 'https://download.geonames.org/export/dump/AX.zip'
         ]);
 
         $result = $command->run($input, $this->output);

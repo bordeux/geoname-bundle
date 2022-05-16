@@ -12,4 +12,26 @@ interface ImportInterface
      * @return PromiseInterface
      */
     public function import(string $filePath, ?callable $progress = null): PromiseInterface;
+
+
+    /**
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
+     * @return string
+     */
+    public function getOptionName(): string;
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string;
+
+
+    /**
+     * @return string
+     */
+    public function getDefaultValue(): string;
 }

@@ -3,10 +3,6 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use SplFileObject;
 
 /**
  * Class TimeZoneImport
@@ -54,5 +50,25 @@ class TimeZoneImport extends AbstractImport
         $this->em->clear();
 
         return true;
+    }
+
+    public function getName(): string
+    {
+        return "TimeZones";
+    }
+
+    public function getOptionName(): string
+    {
+        return "timezones";
+    }
+
+    public function getDescription(): string
+    {
+        return "Timezones file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/timeZones.txt";
     }
 }

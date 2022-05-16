@@ -2,13 +2,6 @@
 
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
-use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManager;
-use GuzzleHttp\Promise\Promise;
-use SplFileObject;
-
 /**
  * Class HierarchyImport
  * @package Bordeux\Bundle\GeoNameBundle\Import
@@ -65,5 +58,26 @@ class HierarchyImport extends GeoNameImport
         !empty($buffer) && $this->save($buffer);
         $connection->commit();
         return true;
+    }
+
+
+    public function getName(): string
+    {
+        return "Hierarchy";
+    }
+
+    public function getOptionName(): string
+    {
+        return "hierarchy";
+    }
+
+    public function getDescription(): string
+    {
+        return "Hierarchy file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/hierarchy.zip#hierarchy.txt";
     }
 }
