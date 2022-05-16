@@ -7,6 +7,7 @@ use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Country;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -50,7 +51,9 @@ class ImportCommandTest extends KernelTestCase
             '--force' => true
         ]), $this->output);
 
-        $this->em = self::$kernel->getContainer()->get("doctrine")->getEntityManager();
+        /** @var Registry $registry */
+        $registry = self::$kernel->getContainer()->get("doctrine");
+        $this->em = $registry->getManager();
     }
 
     /**
