@@ -3,11 +3,26 @@ on: [ push ]
 
 jobs:
   tests:
-    name: PHPUnit PHP ${{ matrix.php }} ${{ matrix.dependency }} (Symfony ${{ matrix.symfony }})
+    name: PHPUnit PHP ${{ matrix.php }} Postgres ${{ matrix.database }} (Symfony ${{ matrix.symfony }})
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        php:
+          - '8.0'
+          - '8.1'
+        symfony:
+          - '4.4.*'
+          - '5.4.*'
+          - '6.0.*'
+        database:
+          - 12
+          - 13
+          - 14
+      fail-fast: false
+
     services:
       postgres:
-        image: postgres:13
+        image: postgres:${{ matrix.database }}
         env:
           POSTGRES_DB: app
           POSTGRES_PASSWORD: ChangeMe
@@ -20,17 +35,6 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-
-    strategy:
-      matrix:
-        php:
-          - '8.0'
-          - '8.1'
-        symfony:
-          - '4.4.*'
-          - '5.4.*'
-          - '6.0.*'
-      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -75,4 +79,4 @@ jobs:
           DB_NAME: app
           DB_USER: symfony
           DB_PASSWORD: ChangeMe
-          DB_VERSION: 13
+          DB_VERSION: ${{  matrix.database }}

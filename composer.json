@@ -16,18 +16,23 @@
     "homepage": "https://github.com/bordeux/geoname-bundle",
     "require": {
         "php": ">=8.0",
+        "ext-zip": "*",
         "doctrine/doctrine-bundle": "^2.0",
         "guzzlehttp/guzzle": "^6.0 || ^7.0",
-        "symfony/console": "^4.0 || ^5.0 || ^6.0",
-        "symfony/dependency-injection": "^4.0 || ^5.0 || ^6.0",
-        "symfony/framework-bundle": "^4.0 || ^5.0 || ^6.0"
+        "symfony/console": "^4.0 || ^5.0 || ^6.0"
     },
     "require-dev": {
         "doctrine/orm": "^2.5",
         "ergebnis/composer-normalize": "^2.26",
+        "orklah/psalm-insane-comparison": "^2.0",
+        "php-standard-library/psalm-plugin": "^1.1",
         "phpunit/phpunit": "^9.5.20",
+        "psalm/plugin-symfony": "^3.1",
         "roave/security-advisories": "dev-latest",
-        "symfony/yaml": "^4.0 || ^5.0 || ^6.0"
+        "symfony/framework-bundle": "^4.0 || ^5.0 || ^6.0",
+        "symfony/yaml": "^4.0 || ^5.0 || ^6.0",
+        "vimeo/psalm": "^4.23",
+        "weirdan/doctrine-psalm-plugin": "^2.3"
     },
     "autoload": {
         "psr-4": {
@@ -57,6 +62,9 @@
         "cs:fix": [
             "@php -r \"file_exists('bin/phpcbf') || copy('https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar', 'vendor/bin/phpcbf');\"",
             "@php ./vendor/bin/phpcbf"
+        ],
+        "psalm:check": [
+            "@php ./vendor/bin/psalm"
         ],
         "tests": [
             "@php ./vendor/bin/phpunit"

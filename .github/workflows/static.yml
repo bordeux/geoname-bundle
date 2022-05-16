@@ -2,8 +2,8 @@ on: [ push ]
 name: Static analysis
 
 jobs:
-  php-cs-fixer:
-    name: PHP-CS-Fixer
+  php-code-check:
+    name: PHP-CodeCheck
     runs-on: ubuntu-20.04
 
     steps:
@@ -16,23 +16,14 @@ jobs:
           php-version: 8.0
           coverage: none
 
-      - name: PHP-CodeStandard
-        run: composer install && composer cs:check
+      - name: Run-Composer-Install
+        run: composer install
 
-  composer-normalize:
-    name: Composer Normalize
-    runs-on: ubuntu-20.04
+      - name: Run-CodeStyle-Check
+        run: composer cs:check
 
-    steps:
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.0
-          coverage: none
-          tools: composer-normalize
+      - name: Run-Psalm
+        run: composer psalm:check
 
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Normalize
-        run: composer-normalize --dry-run
+      - name: Run-Composer-Normalize
+        run: composer normalize --dry-run

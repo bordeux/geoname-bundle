@@ -145,21 +145,21 @@ class Country implements Stringable
     protected ?GeoName $geoName;
 
     /**
+     * Country constructor.
+     * @param int $id
+     */
+    public function __construct(int $id)
+    {
+        $this->id = $id;
+    }
+
+
+    /**
      * @return int
      */
     public function getId(): int
     {
         return $this->id;
-    }
-
-    /**
-     * @param int $id
-     * @return $this
-     */
-    public function setId(int $id): self
-    {
-        $this->id = $id;
-        return $this;
     }
 
     /**

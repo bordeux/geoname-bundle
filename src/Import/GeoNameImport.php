@@ -3,258 +3,190 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
+use Bordeux\Bundle\GeoNameBundle\Entity\AlternateName;
 use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
+use Doctrine\DBAL\ParameterType;
 
 /**
  * Class GeoNameImport
- * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class GeoNameImport implements ImportInterface
+class GeoNameImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $em;
+    const BULK_SIZE = 5000;
 
     /**
-     * GeoNameImport constructor.
-     * @param EntityManagerInterface $em
+     * @return Header[]
      */
-    public function __construct(EntityManagerInterface $em)
+    protected function getHeaders(): array
     {
-        $this->em = $em;
+        return [
+            new Header(0, 'geoname_id', Header::TYPE_INT),
+            new Header(1, 'name'),
+            new Header(2, 'asci_name'),
+            new Header(3, 'alternate_names'),
+            new Header(4, 'latitude', Header::TYPE_FLOAT),
+            new Header(5, 'longitude', Header::TYPE_FLOAT),
+            new Header(6, 'feature_class'),
+            new Header(7, 'feature_code'),
+            new Header(8, 'country_code'),
+            new Header(9, 'cc2'),
+            new Header(10, 'admin1_code'),
+            new Header(11, 'admin2_code'),
+            new Header(12, 'admin3_code'),
+            new Header(13, 'admin4_code'),
+            new Header(14, 'population', Header::TYPE_INT),
+            new Header(15, 'elevation', Header::TYPE_INT),
+            new Header(16, 'dem', Header::TYPE_INT),
+            new Header(17, 'timezone'),
+            new Header(18, 'modification_date'),
+        ];
     }
-
 
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
-    }
-
-    /**
-     * @param $filePath
-     * @param callable|null $progress
      * @return bool
      * @throws \Doctrine\DBAL\Exception
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData(string $filePath, ?callable $progress = null): bool
     {
-
-        $avrOneLineSize = 29.4;
-        $batchSize = 10000;
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders());
 
         $connection = $this->em->getConnection();
-
-        $fileInside = basename($filePath, ".zip") . '.txt';
-        $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int) (filesize($filePath) / $avrOneLineSize);
-
-        $fieldsNames = $this->getFieldNames();
-
-        $geoNameTableName = $this->em
-            ->getClassMetadata(GeoName::class)
-            ->getTableName();
-
-        $timezoneTableName = $this->em
-            ->getClassMetadata(Timezone::class)
-            ->getTableName();
-
-        $administrativeTableName = $this->em
-            ->getClassMetadata(Administrative::class)
-            ->getTableName();
-
-
-        $dbType = $connection->getDatabasePlatform()->getName();
-
-        $connection->executeStatement("START TRANSACTION");
-
-        $pos = 0;
-
-        $buffer = [];
-
-        $queryBuilder = $connection->createQueryBuilder()
-            ->insert($geoNameTableName);
-
-        while (!feof($handler)) {
-            $csv = fgetcsv($handler, null, "\t");
-            if (!is_array($csv)) {
-                continue;
-            }
-            if (!isset($csv[0]) || !is_numeric($csv[0])) {
-                continue;
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            $buffer = [];
+            foreach ($bulk as $item) {
+                $countryCode = $item['country_code'];
+                $admin1Code = $item['admin1_code'];
+                $item['admin1'] = "{$countryCode}.{$admin1Code}";
+                $item['admin2'] = "{$countryCode}.{$admin1Code}.{$item['admin2_code']}";
+                $item['admin3'] = "{$countryCode}.{$admin1Code}.{$item['admin3_code']}";
+                $item['admin4'] = "{$countryCode}.{$admin1Code}.{$item['admin4_code']}";
+                $buffer[] = $item;
             }
 
-            list(
-                $geoNameId,
-                $name,
-                $asciiName,
-                $alternateNames,
-                $latitude,
-                $longitude,
-                $featureClass,
-                $featureCode,
-                $countryCode,
-                $cc2,
-                $admin1Code,
-                $admin2Code,
-                $admin3Code,
-                $admin4Code,
-                $population,
-                $elevation,
-                $dem,
-                $timezone,
-                $modificationDate
-                ) = array_map('trim', $csv);
-
-
-            if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
-                continue;
-            }
-
-
-            $data = [
-                $fieldsNames['id'] => (int)$geoNameId, //must be as first!
-                $fieldsNames['name'] => $this->e($name),
-                $fieldsNames['asciiName'] => $this->e($asciiName),
-                $fieldsNames['latitude'] => $this->e($latitude),
-                $fieldsNames['longitude'] => $this->e($longitude),
-                $fieldsNames['featureClass'] => $this->e($featureClass),
-                $fieldsNames['featureCode'] => $this->e($featureCode),
-                $fieldsNames['countryCode'] => $this->e($countryCode),
-                $fieldsNames['cc2'] => $this->e($cc2),
-                $fieldsNames['population'] => $this->e($population),
-                $fieldsNames['elevation'] => $this->e($elevation),
-                $fieldsNames['dem'] => $this->e($dem),
-                $fieldsNames['modificationDate'] => $this->e($modificationDate),
-                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
-            ];
-
-
-
-
-            $query = $queryBuilder->values($data);
-
-
-            $buffer[] = $this->insertToReplace($query, $dbType);
-
-            $pos++;
-
-            if ($pos % $batchSize) {
-                $this->save($buffer);
-                $buffer = [];
-                is_callable($progress) && $progress(($pos) / $max);
-            }
+            $this->insert($buffer);
         }
 
-        !empty($buffer) && $this->save($buffer);
-        $connection->executeStatement('COMMIT');
+        $connection->commit();
 
         return true;
     }
 
-
-    /**
-     * @param QueryBuilder $insertSQL
-     * @return mixed
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function insertToReplace(QueryBuilder $insertSQL, $dbType)
+    protected function insert(array $buffer): void
     {
-        if ($dbType == "mysql") {
-            $sql = $insertSQL->getSQL();
-            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
-        }
+        $pseudoSql = "
+            INSERT INTO {geoname} (
+                {geoname:id},
+                {geoname:name},
+                {geoname:asciiName},
+                {geoname:latitude},
+                {geoname:longitude},
+                {geoname:featureClass},
+                {geoname:featureCode},
+                {geoname:countryCode},
+                {geoname:cc2},
+                {geoname:admin1},
+                {geoname:admin2},
+                {geoname:admin3},
+                {geoname:admin4},
+                {geoname:population},
+                {geoname:elevation},
+                {geoname:dem},
+                {geoname:timezone},
+                {geoname:modificationDate}
+            )
+            SELECT
+                (_v.value->>'geoname_id')::integer,
+                (_v.value->>'name'),
+                (_v.value->>'ascii_name'),
+                (_v.value->>'latitude')::double precision,
+                (_v.value->>'longitude')::double precision,
+                (_v.value->>'feature_class'),
+                (_v.value->>'feature_code'),
+                (_v.value->>'country_code'),
+                (_v.value->>'cc2'),
+                a1.id,
+                a2.id,
+                a3.id,
+                a4.id,
+                (_v.value->>'population')::integer,
+                (_v.value->>'elevation')::integer,
+                (_v.value->>'dem')::integer,
+                t.{timezone:id},
+                (_v.value->>'modification_date')::date
 
-        if ($dbType == "postgresql") {
-            $vals = $insertSQL->getQueryPart("values");
-            $sql = $insertSQL->getSQL();
-            reset($vals);
-            $index = key($vals);
-            array_shift($vals);
+            FROM json_array_elements( (:data)::json ) _v
+            LEFT JOIN {administrative} a1 ON a1.{administrative:code} = (_v.value->>'admin1')
+            LEFT JOIN {administrative} a2 ON a2.{administrative:code} = (_v.value->>'admin2')
+            LEFT JOIN {administrative} a3 ON a3.{administrative:code} = (_v.value->>'admin3')
+            LEFT JOIN {administrative} a4 ON a4.{administrative:code} = (_v.value->>'admin4')
+            LEFT JOIN {timezone} t ON t.{timezone:timezone} = (_v.value->>'timezone')
+            ON CONFLICT ({geoname:id}) DO UPDATE  SET
+                {geoname:name} = EXCLUDED.{geoname:name},
+                {geoname:asciiName} = EXCLUDED.{geoname:asciiName},
+                {geoname:latitude} = EXCLUDED.{geoname:latitude},
+                {geoname:longitude} = EXCLUDED.{geoname:longitude},
+                {geoname:featureClass} = EXCLUDED.{geoname:featureClass},
+                {geoname:featureCode} = EXCLUDED.{geoname:featureCode},
+                {geoname:countryCode} = EXCLUDED.{geoname:countryCode},
+                {geoname:cc2} = EXCLUDED.{geoname:cc2},
+                {geoname:admin1} = EXCLUDED.{geoname:admin1},
+                {geoname:admin2} = EXCLUDED.{geoname:admin2},
+                {geoname:admin3} = EXCLUDED.{geoname:admin3},
+                {geoname:admin4} = EXCLUDED.{geoname:admin4},
+                {geoname:population} = EXCLUDED.{geoname:population},
+                {geoname:elevation} = EXCLUDED.{geoname:elevation},
+                {geoname:dem} = EXCLUDED.{geoname:dem},
+                {geoname:timezone} = EXCLUDED.{geoname:timezone},
+                {geoname:modificationDate} = EXCLUDED.{geoname:modificationDate}
+        ";
 
-            $parts = [];
-            foreach ($vals as $column => $val) {
-                $parts[] = "{$column} = {$val}";
-            }
+        $sql = $this->parseQuery($pseudoSql, [
+            "geoname" => GeoName::class,
+            "administrative" => Administrative::class,
+            "timezone" => Timezone::class,
+        ]);
 
-            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET " . implode(", ", $parts);
-
-            return $sql;
-        }
-
-        throw new \Exception("Unsupported database type");
+        $this->em->getConnection()->executeStatement(
+            $sql,
+            [
+                'data' => json_encode($buffer)
+            ],
+            [
+                'data' =>  ParameterType::STRING
+            ]
+        );
     }
 
-    /**
-     * @param $queries
-     * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function save($queries)
+    public function getName(): string
     {
-        $queries = implode("; \n", $queries);
-        $this->em->getConnection()->exec($queries);
-
-        return true;
+        return "GeoNames";
     }
 
-
-    /**
-     * @return string[]
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function getFieldNames()
+    public function getOptionName(): string
     {
-        $metaData = $this->em->getClassMetadata(GeoName::class);
-
-        $result = [];
-
-        foreach ($metaData->getFieldNames() as $name) {
-            $result[$name] = $metaData->getColumnName($name);
-        }
-
-        foreach ($metaData->getAssociationNames() as $name) {
-            if ($metaData->isSingleValuedAssociation($name)) {
-                $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
-            }
-        }
-
-        return $result;
+        return "geonames";
     }
 
-    /**
-     * @param string $val
-     * @return string
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    protected function e($val)
+    public function getDescription(): string
     {
-        if ($val === null || strlen($val) === 0) {
-            return 'NULL';
-        }
-        return $this->em->getConnection()->quote($val);
+        return "Geonames file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/allCountries.zip#allCountries.txt";
+    }
+
+    public function getTestValue(): ?string
+    {
+        return "https://download.geonames.org/export/dump/PL.zip#PL.txt";
     }
 }

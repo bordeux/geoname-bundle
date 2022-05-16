@@ -3,97 +3,81 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use SplFileObject;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader\Header;
 
 /**
  * Class TimeZoneImport
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class TimeZoneImport implements ImportInterface
+class TimeZoneImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $em;
+    protected const BULK_SIZE = 1000;
 
     /**
-     * TimeZoneImport constructor.
-     * @param EntityManagerInterface $em
+     * @return Header[]
      */
-    public function __construct(EntityManagerInterface $em)
+    protected function getHeaders(): array
     {
-        $this->em = $em;
+        return [
+            new Header(0, 'country_code'),
+            new Header(1, 'timezone'),
+            new Header(2, 'gmt_offset', Header::TYPE_FLOAT),
+            new Header(3, 'dst_offset', Header::TYPE_FLOAT),
+            new Header(4, 'raw_offset', Header::TYPE_FLOAT),
+        ];
     }
-
 
     /**
      * @param string $filePath
      * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
-    }
-
-    /**
-     * @param $filePath
-     * @param callable|null $progress
      * @return bool
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData($filePath, callable $progress = null): bool
     {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        $file->seek(PHP_INT_MAX);
-        $max = $file->key();
-        $file->seek(1); //skip header
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders())
+            ->skipLines(1);
 
         $timezoneRepository = $this->em->getRepository(Timezone::class);
-
-        $pos = -1;
-
-        foreach ($file as $row) {
-            if ($pos == -1) {
-                $pos++;
-                continue;
+        $connection = $this->em->getConnection();
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            foreach ($bulk as $item) {
+                $timezone = $item['timezone'];
+                $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
+                $object->setTimezone($timezone);
+                $object->setCountryCode($item['country_code']);
+                $object->setGmtOffset($item['gmt_offset']);
+                $object->setDstOffset($item['dst_offset']);
+                $object->setRawOffset($item['raw_offset']);
+                !$object->getId() && $this->em->persist($object);
             }
-            $row = array_map('trim', $row);
-            list(
-                $countryCode,
-                $timezone,
-                $gmtOffset,
-                $dstOffset,
-                $rawOffset
-                ) = $row;
 
-
-            $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
-            $object->setTimezone($timezone);
-            $object->setCountryCode($countryCode);
-            $object->setGmtOffset((float)$gmtOffset);
-            $object->setDstOffset((float)$dstOffset);
-            $object->setRawOffset((float)$rawOffset);
-
-            !$object->getId() && $this->em->persist($object);
-            is_callable($progress) && $progress(($pos++) / $max);
+            $this->em->flush();
+            $this->em->clear();
         }
-
-        $this->em->flush();
-        $this->em->clear();
-
+        $connection->commit();
         return true;
+    }
+
+    public function getName(): string
+    {
+        return "TimeZones";
+    }
+
+    public function getOptionName(): string
+    {
+        return "timezones";
+    }
+
+    public function getDescription(): string
+    {
+        return "Timezones file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/timeZones.txt";
     }
 }

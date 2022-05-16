@@ -3,101 +3,73 @@
 namespace Bordeux\Bundle\GeoNameBundle\Import;
 
 use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use SplFileObject;
+use Bordeux\Bundle\GeoNameBundle\Helper\TextFileReader;
 
 /**
  * Class AdministrativeImport
- * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Import
  */
-class AdministrativeImport implements ImportInterface
+class AdministrativeImport extends AbstractImport
 {
-    /**
-     * @var EntityManagerInterface|EntityManager
-     */
-    protected EntityManagerInterface $em;
+    protected const BULK_SIZE = 10000;
+
 
     /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
+     * @return TextFileReader\Header[]
      */
-    public function __construct(EntityManagerInterface $em)
+    protected function getHeaders(): array
     {
-        $this->em = $em;
-    }
-
-
-    /**
-     * @param string $filePath
-     * @param callable|null $progress
-     * @return PromiseInterface
-     */
-    public function import(string $filePath, ?callable $progress = null): PromiseInterface
-    {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->importData($filePath, $progress)
-            );
-        }));
-
-        return $promise;
+        return [
+            new TextFileReader\Header(0, 'code'),
+            new TextFileReader\Header(1, 'name'),
+            new TextFileReader\Header(2, 'asci_name')
+        ];
     }
 
     /**
      * @param string $filePath
      * @param callable|null $progress
      * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    protected function importData($filePath, callable $progress = null)
+    protected function importData(string $filePath, ?callable $progress = null): bool
     {
-        $file = new SplFileObject($filePath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-        $file->setCsvControl("\t");
-        $file->seek(PHP_INT_MAX);
-        $max = $file->key();
-        $file->seek(1); //skip header
+        $reader = new TextFileReader($filePath, $progress);
+        $reader->addHeaders($this->getHeaders());
 
+        $connection = $this->em->getConnection();
         $administrative = $this->em->getRepository(Administrative::class);
-
-        $pos = 0;
-
-        foreach ($file as $row) {
-            $row = array_map('trim', $row);
-            list(
-                $code,
-                $name,
-                $asciiName,
-                $geoNameId
-                ) = $row;
-
-
-            $object = $administrative->findOneBy(['code' => $code]) ?: new Administrative();
-            $object->setCode($code);
-            $object->setName($name);
-            $object->setAsciiName($asciiName);
-
-            !$object->getId() && $this->em->persist($object);
-
-            is_callable($progress) && $progress(($pos++) / $max);
-
-            if ($pos % 10000) {
-                $this->em->flush();
-                $this->em->clear();
+        $connection->beginTransaction();
+        foreach ($reader->process(static::BULK_SIZE) as $bulk) {
+            foreach ($bulk as $item) {
+                $object = $administrative->findOneBy(['code' => $item['code']]) ?: (new Administrative())->setCode($item['code']);
+                $object->setName($item['name'])
+                    ->setAsciiName($item['asci_name']);
+                !$object->getId() && $this->em->persist($object);
             }
+            $this->em->flush();
+            $this->em->clear();
         }
-
-        $this->em->flush();
-        $this->em->clear();
-
+        $connection->commit();
         return true;
+    }
+
+    public function getName(): string
+    {
+        return "Administrative";
+    }
+
+    public function getOptionName(): string
+    {
+        return "admin1-codes";
+    }
+
+    public function getDescription(): string
+    {
+        return "Admin 1 codes file URL";
+    }
+
+    public function getDefaultValue(): string
+    {
+        return "https://download.geonames.org/export/dump/admin1CodesASCII.txt";
     }
 }

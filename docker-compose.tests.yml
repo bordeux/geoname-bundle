@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-symfony}
     volumes:
       - db-data:/var/lib/postgresql/data:rw
+    ports:
+      - 5432:5432
 
   tests:
     image: cimg/php:8.0
