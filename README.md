@@ -84,7 +84,7 @@ Loads a list of all data from [geonames.org][1]
 
 ### How to run tests?
 
-Just run: ``dokcer-compose -f docker-compose.tests.yml up``
+Just run: ``docker-compose -f docker-compose.tests.yml up``
 
  [1]: https://geonames.org
  [2]: https://symfony.com
