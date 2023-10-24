@@ -1,7 +1,7 @@
 version: '3'
 services:
   database:
-    image: postgres:${POSTGRES_VERSION:-13}-alpine
+    image: postgres:${POSTGRES_VERSION:-15}-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
@@ -12,7 +12,7 @@ services:
       - 5432:5432
 
   tests:
-    image: cimg/php:8.0
+    image: cimg/php:8.2
     working_dir: /home/tests
     entrypoint: "bash -xc"
     command: "'composer install && composer tests'"

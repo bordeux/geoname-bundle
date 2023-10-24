@@ -4,20 +4,20 @@ on: [ push ]
 jobs:
   tests:
     name: PHPUnit PHP ${{ matrix.php }} Postgres ${{ matrix.database }} (Symfony ${{ matrix.symfony }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         php:
-          - '8.0'
           - '8.1'
+          - '8.2'
         symfony:
-          - '4.4.*'
+          - '6.3.*'
           - '5.4.*'
-          - '6.0.*'
         database:
-          - 12
-          - 13
           - 14
+          - 15
+          - 16
+          - 13
       fail-fast: false
 
     services:
@@ -48,10 +48,6 @@ jobs:
 
       - name: Configure Symfony
         run: composer config extra.symfony.require "${{ matrix.symfony }}"
-
-      - name: Prefer unstable Composer dependencies if Symfony 6.1
-        if: matrix.symfony == '6.1.*'
-        run: composer config prefer-stable false
 
       - name: Get Composer Cache Directory
         id: composer-cache

@@ -3,7 +3,6 @@
 namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use phpDocumentor\Reflection\Types\Integer;
 use Stringable;
 
 /**
