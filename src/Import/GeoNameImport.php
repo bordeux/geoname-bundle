@@ -116,7 +116,7 @@ class GeoNameImport extends AbstractImport
                 a2.id,
                 a3.id,
                 a4.id,
-                (_v.value->>'population')::integer,
+                (_v.value->>'population')::bigint,
                 (_v.value->>'elevation')::integer,
                 (_v.value->>'dem')::integer,
                 t.{timezone:id},
