@@ -28,7 +28,7 @@
         "orklah/psalm-insane-comparison": "^2.0",
         "php-standard-library/psalm-plugin": "^1.1",
         "phpunit/phpunit": "^9.5.20",
-        "psalm/plugin-symfony": "^3.0 || ^4.0 || ^5.0"
+        "psalm/plugin-symfony": "^3.0 || ^4.0 || ^5.0",
         "roave/security-advisories": "dev-latest",
         "symfony/framework-bundle": "^5.0 || ^6.0",
         "symfony/yaml": "^5.0 || ^6.0",
