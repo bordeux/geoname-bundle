@@ -11,12 +11,8 @@ jobs:
           - '8.1'
           - '8.2'
         symfony:
-          - '4.4.*'
-          - '5.4.*'
-          - '6.0.*'
           - '6.4.*'
         database:
-          - 13
           - 14
           - 15
       fail-fast: false
@@ -49,10 +45,6 @@ jobs:
 
       - name: Configure Symfony
         run: composer config extra.symfony.require "${{ matrix.symfony }}"
-
-      - name: Prefer unstable Composer dependencies if Symfony 6.1
-        if: matrix.symfony == '6.1.*'
-        run: composer config prefer-stable false
 
       - name: Get Composer Cache Directory
         id: composer-cache
