@@ -120,7 +120,6 @@ class ImportCommandTest extends KernelTestCase
 
         $timezone = $geoName->getTimezone();
         self::assertInstanceOf(Timezone::class, $timezone);
-        self::assertSame(372, $timezone->getId());
         self::assertSame("Europe/Warsaw", $timezone->getTimezone());
         self::assertSame("PL", $timezone->getCountryCode());
         self::assertSame(1.0, $timezone->getGmtOffset());

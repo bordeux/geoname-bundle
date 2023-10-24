@@ -5,7 +5,7 @@ Geonames Bundle
 
 # Introduction
 
-Provides access to the data exported by [GeoNames.org][1] into  [Symfony 4, 5, 6][2]
+Provides access to the data exported by [GeoNames.org][1] into  [Symfony 5, 6][2]
 applications. Starting version 3.0 this library supporting only PostgreSQL database.
 
 
