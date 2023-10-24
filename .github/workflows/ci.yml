@@ -8,16 +8,16 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.0'
           - '8.1'
           - '8.2'
         symfony:
           - '6.3.*'
-          - '6.0.*'
           - '5.4.*'
         database:
           - 14
           - 15
+          - 16
+          - 13
       fail-fast: false
 
     services:
