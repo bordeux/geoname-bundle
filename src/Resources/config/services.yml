@@ -11,6 +11,8 @@ services:
   Bordeux\Bundle\GeoNameBundle\Import\CountryImport:
 #  Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport:
   Bordeux\Bundle\GeoNameBundle\Import\AlternateNameImport:
+  Bordeux\Bundle\GeoNameBundle\Import\PostalCodeImport:
+
 
   Bordeux\Bundle\GeoNameBundle\Command\ImportCommand:
     tags:
@@ -25,3 +27,4 @@ services:
         - '@Bordeux\Bundle\GeoNameBundle\Import\CountryImport'
 #        - '@Bordeux\Bundle\GeoNameBundle\Import\HierarchyImport'
         - '@Bordeux\Bundle\GeoNameBundle\Import\AlternateNameImport'
+        - '@Bordeux\Bundle\GeoNameBundle\Import\PostalCodeImport'
