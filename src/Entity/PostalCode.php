@@ -44,14 +44,14 @@ class PostalCode
 
 
     /**
-     * @var string 1. order subdivision (state) 
+     * @var string 1. order subdivision (state)
      *
      * @ORM\Column(name="admin_name1", type="string", length=100, nullable=true)
      */
     protected ?string $adminName1;
 
     /**
-     * @var string 1. order subdivision (state) 
+     * @var string 1. order subdivision (state)
      *
      * @ORM\Column(name="admin_code1", type="string", length=20, nullable=true)
      */
@@ -61,28 +61,28 @@ class PostalCode
 
 
     /**
-     * @var string 1. order subdivision (county/province) 
+     * @var string 1. order subdivision (county/province)
      *
      * @ORM\Column(name="admin_name2", type="string", length=100, nullable=true)
      */
     protected ?string $adminName2;
 
     /**
-     * @var string 1. order subdivision (county/province) 
+     * @var string 1. order subdivision (county/province)
      *
      * @ORM\Column(name="admin_code2", type="string", length=20, nullable=true)
      */
     protected ?string $adminCode2;
 
     /**
-     * @var string 1. order subdivision (community) 
+     * @var string 1. order subdivision (community)
      *
      * @ORM\Column(name="admin_name3", type="string", length=100, nullable=true)
      */
     protected ?string $adminName3;
 
     /**
-     * @var string 1. order subdivision (community) 
+     * @var string 1. order subdivision (community)
      *
      * @ORM\Column(name="admin_code3", type="string", length=20, nullable=true)
      */
