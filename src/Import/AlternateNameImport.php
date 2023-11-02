@@ -22,7 +22,8 @@ class AlternateNameImport extends AbstractImport
             new Header(0, 'id', Header::TYPE_INT),
             new Header(1, 'geoname_id', Header::TYPE_INT),
             new Header(2, 'type'),
-            new Header(3, 'value')
+            new Header(3, 'value'),
+            new Header(4, 'prefered', Header::TYPE_STRING_OR_NAN)
         ];
     }
 
@@ -57,19 +58,22 @@ class AlternateNameImport extends AbstractImport
                 {alternate_name:id},
                 {alternate_name:geoName},
                 {alternate_name:type},
-                {alternate_name:value}
+                {alternate_name:value},
+                {alternate_name:prefered}
             )
             SELECT
                 (_v.value->>'id')::integer,
                 g.{geoname:id},
                 (_v.value->>'type'),
-                (_v.value->>'value')
+                (_v.value->>'value'),
+                (_v.value->>'prefered')
             FROM json_array_elements( (:data)::json ) _v
             JOIN {geoname} g ON g.{geoname:id} = (_v.value->>'geoname_id')::integer
             ON CONFLICT ({geoname:id}) DO UPDATE  SET
                 {alternate_name:geoName} = EXCLUDED.{alternate_name:geoName},
                 {alternate_name:type} = EXCLUDED.{alternate_name:type},
-                {alternate_name:value} = EXCLUDED.{alternate_name:value}
+                {alternate_name:value} = EXCLUDED.{alternate_name:value},
+                {alternate_name:prefered} = EXCLUDED.{alternate_name:prefered}
         ";
 
         $sql = $this->parseQuery($pseudoSql, [
