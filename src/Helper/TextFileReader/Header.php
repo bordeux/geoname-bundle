@@ -14,6 +14,7 @@ class Header
     public const TYPE_STRING = 1;
     public const TYPE_INT = 2;
     public const TYPE_FLOAT = 3;
+    public const TYPE_STRING_OR_NAN = 4;
 
     protected string $name;
     protected int $index;
@@ -49,6 +50,13 @@ class Header
      */
     public function getValue(array $row, int $lineNumber): mixed
     {
+         if ($this->type === static::TYPE_STRING_OR_NAN) { //Permit last inexistant fields
+            if (!isset($row[$this->index]))
+                return null;
+            trim($row[$this->index]);
+        }
+
+        
         if (!isset($row[$this->index])) {
             throw $this->createException($row, $lineNumber, "Unable to find column `{$this->index}`");
         }
