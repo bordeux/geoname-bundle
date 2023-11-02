@@ -113,7 +113,23 @@ class AlternateName implements Stringable
         $this->value = $value;
         return $this;
     }
+    /**
+     * Get the value of prefered
+     */
+    public function getPrefered(): int
+    {
+        return $this->prefered;
+    }
 
+    /**
+     * Set the value of prefered
+     */
+    public function setPrefered(int $prefered): self
+    {
+        $this->prefered = $prefered;
+        return $this;
+    }
+    
     /**
      * @return string
      */
