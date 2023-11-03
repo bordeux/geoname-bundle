@@ -51,6 +51,13 @@ class AlternateName implements Stringable
     protected $value;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="prefered", type="string", length=1, nullable=true)
+     */
+    protected $prefered;
+    
+    /**
      *
      * @return int
      */
