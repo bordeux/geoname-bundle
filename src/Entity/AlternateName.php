@@ -51,6 +51,13 @@ class AlternateName implements Stringable
     protected $value;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="prefered", type="string", length=1, nullable=true)
+     */
+    protected $prefered;
+    
+    /**
      *
      * @return int
      */
@@ -113,7 +120,23 @@ class AlternateName implements Stringable
         $this->value = $value;
         return $this;
     }
+    /**
+     * Get the value of prefered
+     */
+    public function getPrefered(): string
+    {
+        return $this->prefered;
+    }
 
+    /**
+     * Set the value of prefered
+     */
+    public function setPrefered(string $prefered): self
+    {
+        $this->prefered = $prefered;
+        return $this;
+    }
+    
     /**
      * @return string
      */
