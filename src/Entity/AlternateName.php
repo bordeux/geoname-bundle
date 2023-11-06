@@ -123,7 +123,7 @@ class AlternateName implements Stringable
     /**
      * Get the value of prefered
      */
-    public function getPrefered(): int
+    public function getPrefered(): string
     {
         return $this->prefered;
     }
@@ -131,7 +131,7 @@ class AlternateName implements Stringable
     /**
      * Set the value of prefered
      */
-    public function setPrefered(int $prefered): self
+    public function setPrefered(string $prefered): self
     {
         $this->prefered = $prefered;
         return $this;
