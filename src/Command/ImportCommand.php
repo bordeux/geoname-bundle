@@ -46,7 +46,7 @@ class ImportCommand extends Command
     /**
      *
      */
-    protected function configure()
+    protected function configure(): void
     {
         $commandLine = $this
             ->setName('bordeux:geoname:import')
