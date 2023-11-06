@@ -95,7 +95,7 @@ class ImportCommand extends Command
         foreach ($this->importers as $importer) {
             $value = $input->getOption($importer->getOptionName());
             $skip = $input->getOption("skip-" . $importer->getOptionName());
-            if (empty($value) || $skip || (!empty($only) && $only !== $importer->getOptionName()))) {
+            if (empty($value) || $skip || (!empty($only) && $only !== $importer->getOptionName())) {
                 $output->writeln("\nSkipping importing {$importer->getName()}");
                 continue;
             }
