@@ -50,9 +50,10 @@ class Header
      */
     public function getValue(array $row, int $lineNumber): mixed
     {
-         if ($this->type === static::TYPE_STRING_OR_NAN) { //Permit last inexistant fields
-            if (!isset($row[$this->index]))
+        if ($this->type === static::TYPE_STRING_OR_NAN) { //Permit last inexistant fields
+            if (!isset($row[$this->index])){
                 return null;
+            }
             trim($row[$this->index]);
         }
 
