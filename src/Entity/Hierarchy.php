@@ -8,46 +8,29 @@ use Doctrine\ORM\Mapping as ORM;
  * Class Hierarchy
  * @author Chris Bednarczyk <chris@tourradar.com>
  * @package Bordeux\Bundle\GeoNameBundle\Entity
- *
- * @ORM\Table(name="geo__name_hierarchy", indexes={
- *     @ORM\Index(name="geoname_hierarchy_unique_idx", columns={"parent_id", "child_id", "type"})
- * })
- * @ORM\Entity()
  */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__name_hierarchy')]
+#[ORM\Index(name: 'geoname_hierarchy_unique_idx', columns: ['parent_id', 'child_id', 'type'])]
 class Hierarchy
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     protected int $id;
 
-    /**
-     * @var GeoName|null
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
-     * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
-     */
+
+    #[ORM\ManyToOne(targetEntity: GeoName::class)]
+    #[ORM\JoinColumn(name: "parent_id", referencedColumnName: "id", nullable: false, onDelete: "CASCADE")]
     protected GeoName $parent;
 
-    /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
-     * @ORM\JoinColumn(name="child_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
-     */
+    #[ORM\ManyToOne(targetEntity: GeoName::class, inversedBy: "parents")]
+    #[ORM\JoinColumn(name: "child_id", referencedColumnName: "id", nullable: false, onDelete: "CASCADE")]
     protected GeoName $child;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="type", type="string", length=10, nullable=true)
-     */
+    #[ORM\Column(length: 10, nullable: true)]
     protected ?string $type;
-
+    
     /**
      * @return int
      */
