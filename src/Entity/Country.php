@@ -37,7 +37,7 @@ class Country implements Stringable
     protected int $area;
 
 
-    #[ORM\Column(type: "bigint",  nullable: false)]
+    #[ORM\Column(type: "bigint", nullable: false)]
     protected int $population;
 
     #[ORM\Column(length: 15, nullable: true)]
