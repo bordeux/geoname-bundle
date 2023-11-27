@@ -4,7 +4,6 @@ namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity()]
 #[ORM\Table(name: 'geo__administrative')]
 class Administrative
