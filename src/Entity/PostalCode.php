@@ -4,88 +4,68 @@ namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * PostalCode
- *
- * @ORM\Table(name="geo__postal")
- * @ORM\Entity()
- */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__postal')]
 class PostalCode
 {
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     protected ?int $id = null;
 
     /**
      * @var string iso country code, 2 characters
-     *
-     * @ORM\Column(name="country_code", type="string", length=2, nullable=true)
      */
+    #[ORM\Column(length: 2, nullable: true)]
     protected ?string $countryCode;
 
     /**
      * @var string iso country code, 2 characters
-     *
-     * @ORM\Column(name="postal_code", type="string", length=20, nullable=true)
      */
+    #[ORM\Column(length: 20, nullable: true)]
     protected ?string $postalCode;
 
     /**
      * @var string iso country code, 2 characters
-     *
-     * @ORM\Column(name="place_name", type="string", length=180, nullable=true)
      */
+    #[ORM\Column(length: 180, nullable: true)]
     protected ?string $placeName;
 
 
     /**
      * @var string 1. order subdivision (state)
-     *
-     * @ORM\Column(name="admin_name1", type="string", length=100, nullable=true)
      */
+    #[ORM\Column(length: 100, nullable: true)]
     protected ?string $adminName1;
 
     /**
      * @var string 1. order subdivision (state)
-     *
-     * @ORM\Column(name="admin_code1", type="string", length=20, nullable=true)
      */
+    #[ORM\Column(length: 20, nullable: true)]
     protected ?string $adminCode1;
-
-
-
 
     /**
      * @var string 1. order subdivision (county/province)
-     *
-     * @ORM\Column(name="admin_name2", type="string", length=100, nullable=true)
      */
+    #[ORM\Column(length: 100, nullable: true)]
     protected ?string $adminName2;
 
     /**
      * @var string 1. order subdivision (county/province)
-     *
-     * @ORM\Column(name="admin_code2", type="string", length=20, nullable=true)
      */
+    #[ORM\Column(length: 20, nullable: true)]
     protected ?string $adminCode2;
 
     /**
      * @var string 1. order subdivision (community)
-     *
-     * @ORM\Column(name="admin_name3", type="string", length=100, nullable=true)
      */
+    #[ORM\Column(length: 100, nullable: true)]
     protected ?string $adminName3;
 
     /**
      * @var string 1. order subdivision (community)
-     *
-     * @ORM\Column(name="admin_code3", type="string", length=20, nullable=true)
      */
+    #[ORM\Column(length: 20, nullable: true)]
     protected ?string $adminCode3;
 
 
