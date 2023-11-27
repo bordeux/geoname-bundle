@@ -13,23 +13,18 @@ class Administrative
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     protected ?int $id = null;
 
-
     #[ORM\Column(length: 30, unique: true)]
     protected string $code;
-
 
     #[ORM\Column(length: 200)]
     protected string $name;
 
-
     #[ORM\Column(length: 200, nullable: true)]
     protected ?string $asciiName;
-
 
     #[ORM\ManyToOne(targetEntity: GeoName::class)]
     #[ORM\JoinColumn(name: "geoname_id", referencedColumnName: "id", nullable: true)]
     protected ?GeoName $geoName;
-
 
     /**
      * @return int
