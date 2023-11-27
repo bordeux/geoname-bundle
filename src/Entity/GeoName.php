@@ -35,33 +35,33 @@ class Country implements Stringable
     #[ORM\Column(nullable: true)]
     protected ?string $capital;
 
-    #[ORM\Column(type: "bigint",  nullable: false)]
+    #[ORM\Column(type: "bigint", nullable: false)]
     protected int $area;
 
 
-    #[ORM\Column(type: "bigint",  nullable: false)]
+    #[ORM\Column(type: "bigint", nullable: false)]
     protected int $population;
 
-    #[ORM\Column(length: 15,  nullable: true)]
+    #[ORM\Column(length: 15, nullable: true)]
     protected ?string $tld;
 
 
-    #[ORM\Column(length: 3,  nullable: true)]
+    #[ORM\Column(length: 3, nullable: true)]
     protected ?string $currency;
 
-    #[ORM\Column(length: 50,  nullable: true)]
+    #[ORM\Column(length: 50, nullable: true)]
     protected ?string $currencyName;
 
     #[ORM\Column(nullable: true)]
     protected ?int $phonePrefix;
 
-    #[ORM\Column(type: "text",  nullable: true)]
+    #[ORM\Column(type: "text", nullable: true)]
     protected ?string $postalFormat;
 
-    #[ORM\Column(type: "text",  nullable: true)]
+    #[ORM\Column(type: "text", nullable: true)]
     protected ?string $postalRegex;
 
-    #[ORM\Column(type: "json",  nullable: true)]
+    #[ORM\Column(type: "json", nullable: true)]
     protected ?array $languages;
 
     #[ORM\ManyToOne(targetEntity: GeoName::class)]
