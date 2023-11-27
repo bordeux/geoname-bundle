@@ -8,7 +8,6 @@ use Stringable;
 #[ORM\Entity()]
 #[ORM\Table(name: 'geo__country')]
 #[ORM\Index(name: 'geoname_country_search_idx', columns: ['name', 'iso'])]
-
 class Country implements Stringable
 {
     #[ORM\Id]
