@@ -8,7 +8,6 @@ use Stringable;
 #[ORM\Entity()]
 #[ORM\Table(name: 'geo__alternate_name')]
 #[ORM\Index(name: 'geoname_name_search_idx', columns: ['geoname_id', 'type'])]
-
 class AlternateName implements Stringable
 {
     public const TYPE_NONE = 'none';
