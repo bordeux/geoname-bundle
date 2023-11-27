@@ -5,148 +5,70 @@ namespace Bordeux\Bundle\GeoNameBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 
-/**
- * GeoName
- *
- * @ORM\Table(name="geo__country" ,indexes={
- *     @ORM\Index(name="geoname_country_search_idx", columns={"name", "iso"})
- * })
- * @ORM\Entity()
- */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__country')]
+#[ORM\Index(name: 'geoname_country_search_idx', columns: ['name', 'iso'])]
+
 class Country implements Stringable
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="NONE")
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'NONE')]
     protected int $id;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="iso", type="string", length=2, nullable=false)
-     */
+    #[ORM\Column(length: 2, nullable: false)]
     protected string $iso;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="iso3", type="string", length=3, nullable=false)
-     */
+    #[ORM\Column(length: 3, nullable: false)]
     protected string $iso3;
 
-    /**
-     * @var integer
-     *
-     * @ORM\Column(name="iso_numeric", type="integer", length=3, nullable=false)
-     */
+    #[ORM\Column(length: 3, nullable: false)]
     protected int $isoNumeric;
 
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="fips", type="string", length=2, nullable=true)
-     */
+    #[ORM\Column(length: 2, nullable: true)]
     protected ?string $fips;
 
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="name", type="string", length=255, nullable=false)
-     */
+    #[ORM\Column(nullable: false)]
     protected string $name;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="capital", type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(nullable: true)]
     protected ?string $capital;
 
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(name="area", type="bigint", nullable=false)
-     */
+    #[ORM\Column(type: "bigint",  nullable: false)]
     protected int $area;
 
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="population", type="bigint", nullable=false)
-     */
+
+    #[ORM\Column(type: "bigint",  nullable: false)]
     protected int $population;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="tld", type="string", length=15, nullable=true)
-     */
+    #[ORM\Column(length: 15,  nullable: true)]
     protected ?string $tld;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="currency", type="string", length=3, nullable=true)
-     */
+
+    #[ORM\Column(length: 3,  nullable: true)]
     protected ?string $currency;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="currency_name", type="string", length=50, nullable=true)
-     */
+    #[ORM\Column(length: 50,  nullable: true)]
     protected ?string $currencyName;
 
-
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="phone_prefix", type="integer", nullable=true)
-     */
+    #[ORM\Column(nullable: true)]
     protected ?int $phonePrefix;
 
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="postal_format", type="text", nullable=true)
-     */
+    #[ORM\Column(type: "text",  nullable: true)]
     protected ?string $postalFormat;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="postal_regex", type="text", nullable=true)
-     */
+    #[ORM\Column(type: "text",  nullable: true)]
     protected ?string $postalRegex;
 
-
-    /**
-     * @var array
-     *
-     * @ORM\Column(name="languages", type="json", nullable=true)
-     */
+    #[ORM\Column(type: "json",  nullable: true)]
     protected ?array $languages;
-    /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
-     * @ORM\JoinColumn(name="continent_id", referencedColumnName="id", nullable=true)
-     */
+
+    #[ORM\ManyToOne(targetEntity: GeoName::class)]
+    #[ORM\JoinColumn(name: "continent_id", referencedColumnName: "id", nullable: true)]
     protected ?GeoName $continent;
-    /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
-     * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
-     */
+
+    #[ORM\ManyToOne(targetEntity: GeoName::class)]
+    #[ORM\JoinColumn(name: "geoname_id", referencedColumnName: "id", nullable: true)]
     protected ?GeoName $geoName;
 
     /**
