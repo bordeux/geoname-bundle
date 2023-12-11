@@ -39,7 +39,7 @@ abstract class AbstractImport implements ImportInterface
     {
         $self = $this;
         /** @var Promise $promise */
-        $promise=null;
+        $promise = null;
         $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
             $promise->resolve(
                 $self->importData($filePath, $progress)
