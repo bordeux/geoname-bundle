@@ -81,10 +81,10 @@ class GeoName
 
     #[ORM\Column(type: "date", nullable: true)]
     protected ?DateTime $modificationDate;
-
+/*
     #[ORM\OneToMany(mappedBy: 'child', targetEntity: Hierarchy::class)]
     protected $parents;
-
+*/
     #[ORM\OneToMany(mappedBy: 'geoName', targetEntity: AlternateName::class)]
     protected $alternateNames;
 
