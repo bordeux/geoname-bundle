@@ -7,171 +7,85 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * GeoName
- *
- * @ORM\Table(name="geo__name" ,indexes={
- *     @ORM\Index(name="geoname_geoname_search_idx", columns={"name", "country_code"}),
- *     @ORM\Index(name="geoname_feature_code_idx", columns={"feature_code"})
- * })
- * @ORM\Entity()
- */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__name')]
+#[ORM\Index(name: 'geoname_feature_code_idx', columns: ['feature_code'])]
+#[ORM\Index(name: 'geoname_geoname_search_idx', columns: ['name', 'country_code'])]
 class GeoName
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="NONE")
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'NONE')]
     protected int $id;
 
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="name", type="string", length=200, nullable=false)
-     */
+    #[ORM\Column(length: 200, nullable: false)]
     protected string $name;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
-     */
+
+    #[ORM\Column(length: 200, nullable: true)]
     protected ?string $asciiName;
 
-
-    /**
-     * @var float
-     * @ORM\Column(name="latitude", type="float", scale=6, precision=9, nullable=true)
-     */
+    #[ORM\Column(type: "float", scale: 6, precision: 9, nullable: true)]
     protected ?float $latitude;
 
-    /**
-     * @var float
-     *
-     * @ORM\Column(name="longitude", type="float", scale=6, precision=9, nullable=true)
-     */
+
+    #[ORM\Column(type: "float", scale: 6, precision: 9, nullable: true)]
     protected ?float $longitude;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="feature_class", type="string", length=1, nullable=true)
-     */
+    #[ORM\Column(length: 1, nullable: true)]
     protected ?string $featureClass;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="feature_code", type="string", length=10, nullable=true)
-     */
+    #[ORM\Column(length: 10, nullable: true)]
     protected ?string $featureCode;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="country_code", type="string", length=2, nullable=true)
-     */
+    #[ORM\Column(length: 2, nullable: true)]
     protected ?string $countryCode;
 
-    /**
-     * @var Country|null
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Country")
-     * @ORM\JoinColumn(name="country_id", referencedColumnName="id", nullable=true)
-     */
+
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(name: "country_id", referencedColumnName: "id", nullable: true)]
     protected ?Country $country;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="cc2", type="string", length=200, nullable=true)
-     */
+    #[ORM\Column(length: 200, nullable: true)]
     protected ?string $cc2;
 
-    /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
-     * @ORM\JoinColumn(name="admin1_id", referencedColumnName="id", nullable=true)
-     */
+
+    #[ORM\ManyToOne(targetEntity: Administrative::class)]
+    #[ORM\JoinColumn(name: "admin1_id", referencedColumnName: "id", nullable: true)]
     protected ?Administrative $admin1;
 
-    /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
-     * @ORM\JoinColumn(name="admin2_id", referencedColumnName="id", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Administrative::class)]
+    #[ORM\JoinColumn(name: "admin2_id", referencedColumnName: "id", nullable: true)]
     protected ?Administrative $admin2;
 
-    /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
-     * @ORM\JoinColumn(name="admin3_id", referencedColumnName="id", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Administrative::class)]
+    #[ORM\JoinColumn(name: "admin3_id", referencedColumnName: "id", nullable: true)]
     protected ?Administrative $admin3;
 
-    /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
-     * @ORM\JoinColumn(name="admin4_id", referencedColumnName="id", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Administrative::class)]
+    #[ORM\JoinColumn(name: "admin4_id", referencedColumnName: "id", nullable: true)]
     protected ?Administrative $admin4;
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="population", type="bigint", nullable=true)
-     */
+    #[ORM\Column(type: "bigint", nullable: true)]
     protected ?int $population;
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="elevation", type="integer", nullable=true)
-     */
+    #[ORM\Column(type: "integer", nullable: true)]
     protected ?int $elevation;
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="dem", type="integer", nullable=true)
-     */
+    #[ORM\Column(type: "integer", nullable: true)]
     protected ?int $dem;
 
-    /**
-     * @var Timezone
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Timezone")
-     * @ORM\JoinColumn(name="timezone_id", referencedColumnName="id", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Timezone::class)]
+    #[ORM\JoinColumn(name: "timezone_id", referencedColumnName: "id", nullable: true)]
     protected ?Timezone $timezone;
 
-    /**
-     * @var DateTime|null
-     *
-     * @ORM\Column(name="modification_date", type="date", nullable=true)
-     */
+    #[ORM\Column(type: "date", nullable: true)]
     protected ?DateTime $modificationDate;
-
-    /**
-     * @var Hierarchy[]
-     *
-     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy", mappedBy="child")
-     */
+/*
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: Hierarchy::class)]
     protected $parents;
-
-    /**
-     * @var ArrayCollection|AlternateName[]
-     *
-     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\AlternateName", mappedBy="geoName")
-     */
+*/
+    #[ORM\OneToMany(mappedBy: 'geoName', targetEntity: AlternateName::class)]
     protected $alternateNames;
 
     /**

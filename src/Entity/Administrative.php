@@ -4,50 +4,26 @@ namespace Bordeux\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Administrative
- *
- * @ORM\Table(name="geo__administrative")
- * @ORM\Entity()
- */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__administrative')]
 class Administrative
 {
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     protected ?int $id = null;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="code", type="string", length=30, unique=true)
-     */
+    #[ORM\Column(length: 30, unique: true)]
     protected string $code;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="name", type="string", length=200)
-     */
+    #[ORM\Column(length: 200)]
     protected string $name;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
-     */
+    #[ORM\Column(length: 200, nullable: true)]
     protected ?string $asciiName;
 
-    /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
-     * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: GeoName::class)]
+    #[ORM\JoinColumn(name: "geoname_id", referencedColumnName: "id", nullable: true)]
     protected ?GeoName $geoName;
 
     /**

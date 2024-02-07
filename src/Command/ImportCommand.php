@@ -58,9 +58,15 @@ class ImportCommand extends Command
                 "Download dir",
                 sys_get_temp_dir()
             );
-
+        $commandLine->addOption(
+            "only",
+            null,
+            InputOption::VALUE_REQUIRED,
+            "Importing only importName, use import-option-name (ex:  alternate-names)",
+            false
+        );
         foreach ($this->importers as $importer) {
-            $commandLine = $commandLine->addOption(
+            $commandLine->addOption(
                 $importer->getOptionName(),
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -85,11 +91,11 @@ class ImportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $downloadDir = $input->getOption('download-dir');
-
+        $only = $input->getOption('only');
         foreach ($this->importers as $importer) {
             $value = $input->getOption($importer->getOptionName());
             $skip = $input->getOption("skip-" . $importer->getOptionName());
-            if (empty($value) || $skip) {
+            if (empty($value) || $skip || (!empty($only) && $only !== $importer->getOptionName())) {
                 $output->writeln("\nSkipping importing {$importer->getName()}");
                 continue;
             }

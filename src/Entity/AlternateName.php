@@ -5,51 +5,31 @@ namespace Bordeux\Bundle\GeoNameBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 
-/**
- * AlternateNames
- *
- * @ORM\Table(name="geo__alternate_name", indexes={
- *     @ORM\Index(name="geoname_name_search_idx", columns={"geoname_id", "type"}),
- * })
- * @ORM\Entity()
- */
+#[ORM\Entity()]
+#[ORM\Table(name: 'geo__alternate_name')]
+#[ORM\Index(name: 'geoname_name_search_idx', columns: ['geoname_id', 'type'])]
 class AlternateName implements Stringable
 {
     public const TYPE_NONE = 'none';
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="NONE")
-     */
-    protected ?int $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'NONE')]
+    protected ?int $id = null;
 
-
-    /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
-     * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: 'GeoName')]
+    #[ORM\JoinColumn(name: "geoname_id", referencedColumnName: "id", nullable: false)]
     protected GeoName $geoName;
 
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="type", type="string", length=10, nullable=false)
-     */
+    #[ORM\Column(length: 10, nullable: false)]
     protected string $type;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="value", type="text", nullable=false)
-     */
-    protected $value;
+    #[ORM\Column(type: "text", length: 10, nullable: false)]
+    protected string $value;
 
+    #[ORM\Column(length: 1, nullable: true)]
+    protected string $prefered;
+ 
     /**
      *
      * @return int
@@ -113,7 +93,23 @@ class AlternateName implements Stringable
         $this->value = $value;
         return $this;
     }
+    /**
+     * Get the value of prefered
+     */
+    public function getPrefered(): string
+    {
+        return $this->prefered;
+    }
 
+    /**
+     * Set the value of prefered
+     */
+    public function setPrefered(string $prefered): self
+    {
+        $this->prefered = $prefered;
+        return $this;
+    }
+    
     /**
      * @return string
      */
